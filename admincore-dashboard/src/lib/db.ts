@@ -881,6 +881,7 @@ export async function deleteHostAgency(id: string): Promise<boolean> {
 
 export async function openAgencyForUser(targetNumericId: string, agencyType: string = 'shipping', agencyName: string = ''): Promise<{ ok: boolean; error?: string; agency_id?: string; dashboard_email?: string; dashboard_password?: string }> {
   try {
+    const BACKEND_URL = 'https://backend-seven-brown-72.vercel.app';
     let token = 'ayam-admin';
     try {
       const raw = localStorage.getItem('supabase_admin_config');
@@ -905,6 +906,64 @@ export async function getCommissionSettings(): Promise<CommissionSettingModel[]>
     const { data } = await supabase.from('commission_settings').select('*').order('key')
     return mapList<CommissionSettingModel>(data ?? [])
   } catch { return [] }
+}
+
+// ---- Agency Open Requests (approval-gated "فتح وكالة") ----
+
+export async function getAgencyOpenRequests(status: string = 'pending') {
+  try {
+    const { data, error } = await supabase
+      .from('agency_open_requests')
+      .select('*')
+      .eq('status', status)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    const enriched = await Promise.all((data ?? []).map(async (r: any) => {
+      let requester: any = null;
+      try {
+        const { data: u } = await supabase.from('users').select('numeric_id, name, photo_url').eq('auth_uid', r.requested_by).maybeSingle();
+        requester = u;
+      } catch {}
+      return { ...r, requester };
+    }));
+    return enriched;
+  } catch { return [] }
+}
+
+export async function approveAgencyOpenRequest(requestId: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const BACKEND_URL = 'https://backend-seven-brown-72.vercel.app';
+    let token = 'ayam-admin';
+    try {
+      const raw = localStorage.getItem('supabase_admin_config');
+      if (raw) { const cfg = JSON.parse(raw); const key = (cfg.serviceRoleKey || '').trim(); if (key) token = key; }
+    } catch {}
+    const resp = await fetch(`${BACKEND_URL}/api/admin/open-request/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ request_id: requestId }),
+    });
+    const data = await resp.json();
+    return data.ok === false ? { ok: false, error: data.error || 'فشل الموافقة' } : { ok: true };
+  } catch (e: any) { return { ok: false, error: e.message }; }
+}
+
+export async function rejectAgencyOpenRequest(requestId: string, note: string = ''): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const BACKEND_URL = 'https://backend-seven-brown-72.vercel.app';
+    let token = 'ayam-admin';
+    try {
+      const raw = localStorage.getItem('supabase_admin_config');
+      if (raw) { const cfg = JSON.parse(raw); const key = (cfg.serviceRoleKey || '').trim(); if (key) token = key; }
+    } catch {}
+    const resp = await fetch(`${BACKEND_URL}/api/admin/open-request/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ request_id: requestId, note }),
+    });
+    const data = await resp.json();
+    return data.ok === false ? { ok: false, error: data.error || 'فشل الرفض' } : { ok: true };
+  } catch (e: any) { return { ok: false, error: e.message }; }
 }
 
 export async function updateCommissionSetting(id: string, value: number): Promise<boolean> {

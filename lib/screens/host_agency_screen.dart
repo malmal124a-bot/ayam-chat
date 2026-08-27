@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/host_agency_controller.dart';
+import 'agency_open_request_screen.dart';
 
 class HostAgencyScreen extends StatefulWidget {
   const HostAgencyScreen({super.key});
@@ -146,6 +147,11 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   }
 
   Widget _buildNoAgency(ThemeData theme, HostAgencyController controller) {
+    final bool pending = controller.hasOpenRequest;
+    final bool approved = controller.openRequestApproved;
+    final bool rejected = controller.openRequestRejected;
+    final String? rejectNote = controller.openRequest?['note']?.toString();
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -155,23 +161,120 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         centerTitle: true,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.business_outlined, size: 80, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
-            const SizedBox(height: 20),
-            Text('لا توجد وكالة مسجلة لك', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('يمكنك الانضمام إلى وكالة أو فتح وكالة جديدة', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 12)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => controller.refresh(),
-              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary),
-              child: const Text('تحديث', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (pending)
+                _buildStatus(theme,
+                    icon: Icons.hourglass_top,
+                    color: Colors.amber,
+                    title: 'انتظر، جاري الموافقة من قبل الإدارة',
+                    subtitle: 'تم إرسال طلب فتح وكالتك، سيتم إشعارك فور الموافقة.')
+              else if (approved)
+                _buildStatus(theme,
+                    icon: Icons.check_circle,
+                    color: Colors.green,
+                    title: 'تمت الموافقة على وكالتك 🎉',
+                    subtitle: 'قم بتحديث الصفحة لفتح لوحة إدارة الوكالة.')
+              else if (rejected)
+                _buildStatus(theme,
+                    icon: Icons.cancel,
+                    color: Colors.red,
+                    title: 'تم رفض طلب فتح الوكالة',
+                    subtitle: rejectNote != null && rejectNote.isNotEmpty
+                        ? rejectNote
+                        : 'يمكنك التواصل مع الإدارة لمعرفة السبب.')
+              else ...[
+                Icon(Icons.business_outlined,
+                    size: 80,
+                    color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+                const SizedBox(height: 20),
+                Text('لا توجد وكالة مسجلة لك',
+                    style: TextStyle(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontSize: 16)),
+                const SizedBox(height: 8),
+                Text('يمكنك الانضمام إلى وكالة أو فتح وكالة جديدة',
+                    style: TextStyle(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                        fontSize: 12)),
+              ],
+              const SizedBox(height: 24),
+              if (pending)
+                ElevatedButton.icon(
+                  onPressed: () => controller.refresh(),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary),
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text('تحديث حالة الطلب',
+                      style: TextStyle(color: Colors.white)),
+                )
+              else if (approved)
+                ElevatedButton.icon(
+                  onPressed: () => controller.refresh(),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary),
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text('دخول لوحة الوكالة',
+                      style: TextStyle(color: Colors.white)),
+                )
+              else if (!rejected)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final created = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                          builder: (_) => const AgencyOpenRequestScreen()),
+                    );
+                    if (created == true) controller.refresh();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary,
+                      minimumSize: const Size(double.infinity, 52)),
+                  icon: Icon(Icons.add_business, color: theme.colorScheme.onSecondary),
+                  label: Text('هل تريد فتح وكالة؟',
+                      style: TextStyle(
+                          color: theme.colorScheme.onSecondary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                )
+              else
+                ElevatedButton.icon(
+                  onPressed: () => controller.refresh(),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary),
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text('تحديث',
+                      style: TextStyle(color: Colors.white)),
+                ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatus(ThemeData theme,
+      {required IconData icon,
+      required Color color,
+      required String title,
+      required String subtitle}) {
+    return Column(
+      children: [
+        Icon(icon, size: 72, color: color.withValues(alpha: 0.8)),
+        const SizedBox(height: 20),
+        Text(title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: color, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Text(subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 13)),
+      ],
     );
   }
 
@@ -273,7 +376,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   // ═══════════════════════════════════════════════════════════════
   Widget _buildMembersTab(HostAgencyController controller) {
     final theme = Theme.of(context);
-    if (controller.members.isEmpty) {
+    if (controller.members.isEmpty && !controller.isOwner) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -286,10 +389,92 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: controller.members.length,
-      itemBuilder: (context, index) => _buildMemberCard(controller.members[index], theme, controller),
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      children: [
+        if (controller.isOwner) _buildInviteCard(theme, controller),
+        if (controller.isOwner) const SizedBox(height: 12),
+        if (controller.members.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 40),
+            child: Column(
+              children: [
+                Icon(Icons.people_outline, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+                const SizedBox(height: 16),
+                Text('لا يوجد أعضاء بعد', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+              ],
+            ),
+          )
+        else
+          ...controller.members.map((m) => _buildMemberCard(m, theme, controller)),
+      ],
+    );
+  }
+
+  // Invite a user (by numeric id) to join the agency as host/member
+  Widget _buildInviteCard(ThemeData theme, HostAgencyController controller) {
+    final inviteCtrl = TextEditingController();
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.25)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.person_add_alt_1, size: 18, color: theme.colorScheme.secondary),
+                  const SizedBox(width: 6),
+                  Text('دعوة عضو إلى الوكالة', style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: inviteCtrl,
+                keyboardType: TextInputType.number,
+                style: TextStyle(color: theme.colorScheme.onSurface),
+                decoration: InputDecoration(
+                  hintText: 'اكتب آيدي المستخدم (مثال: 12345678)',
+                  hintStyle: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 13),
+                  filled: true,
+                  fillColor: theme.colorScheme.surface,
+                  isDense: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final result = await controller.inviteMember(inviteCtrl.text);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result['message'] as String? ?? ''),
+                        backgroundColor: result['ok'] == true ? Colors.green : Colors.red,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary),
+                  icon: const Icon(Icons.send, size: 16, color: Colors.white),
+                  label: const Text('إرسال دعوة', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'سيصل للمستخدم إشعار بدعوة الانضمام، ويستطيع الموافقة أو الرفض',
+                style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

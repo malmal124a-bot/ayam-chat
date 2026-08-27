@@ -869,5 +869,74 @@ module.exports = function createAgencyRoutes(supabase, authMiddleware) {
     } catch (e) { res.json({ ok: false, error: e.message }); }
   });
 
+  // ─── HOST AGENCY OPEN REQUESTS (approval-gated) ──────────
+
+  // POST /api/agency/open-request — a user submits their own hosting-agency open request
+  router.post('/open-request', async (req, res) => {
+    try {
+      const agent_uid = req.user.sub;
+      const { agency_name, phone, agency_id, photo_url, id_card_url } = req.body;
+      if (!agency_name || !agency_id) {
+        return res.json({ ok: false, error: 'agency_name and agency_id required' });
+      }
+
+      // Already has an active agency?
+      const { data: existingAgency } = await supabase
+        .from('agencies')
+        .select('id')
+        .eq('owner_id', agent_uid)
+        .eq('is_activated', true)
+        .maybeSingle();
+      if (existingAgency) {
+        return res.json({ ok: false, error: 'لديك وكالة مفعّلة بالفعل' });
+      }
+
+      // Already has a pending request?
+      const { data: pendingReq } = await supabase
+        .from('agency_open_requests')
+        .select('id, status')
+        .eq('requested_by', agent_uid)
+        .eq('status', 'pending')
+        .maybeSingle();
+      if (pendingReq) {
+        return res.json({ ok: false, error: 'لديك طلب قيد المراجعة بالفعل', request_id: pendingReq.id });
+      }
+
+      const { data, error } = await supabase
+        .from('agency_open_requests')
+        .insert({
+          requested_by: agent_uid,
+          agency_name,
+          phone: phone || '',
+          agency_id: String(agency_id),
+          photo_url: photo_url || '',
+          id_card_url: id_card_url || '',
+          agency_type: 'hosting',
+          status: 'pending',
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      res.json({ ok: true, request: data });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // GET /api/agency/my-open-request — get the caller's latest open request
+  router.get('/my-open-request', async (req, res) => {
+    try {
+      const agent_uid = req.user.sub;
+      const { data, error } = await supabase
+        .from('agency_open_requests')
+        .select('*')
+        .eq('requested_by', agent_uid)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      res.json({ ok: true, request: data || null });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
   return router;
 };

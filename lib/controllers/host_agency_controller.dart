@@ -1,6 +1,8 @@
 ﻿import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:typed_data';
 import '../services/agency_api_service.dart';
+import '../services/cloudinary_service.dart';
 import '../services/supabase_service.dart';
 
 class HostAgencyController extends ChangeNotifier {
@@ -16,6 +18,7 @@ class HostAgencyController extends ChangeNotifier {
   List<Map<String, dynamic>> _withdrawalLogs = [];
   Map<String, dynamic>? _wallet;
   Map<String, dynamic>? _selectedMemberDetail;
+  Map<String, dynamic>? _openRequest; // agency_open_requests row
   bool _isLoading = false;
   String? _errorMessage;
   bool _agencyDeleted = false;
@@ -30,6 +33,14 @@ class HostAgencyController extends ChangeNotifier {
   List<Map<String, dynamic>> get withdrawalLogs => _withdrawalLogs;
   Map<String, dynamic>? get wallet => _wallet;
   Map<String, dynamic>? get selectedMemberDetail => _selectedMemberDetail;
+  Map<String, dynamic>? get openRequest => _openRequest;
+  String get openRequestStatus => _openRequest?['status']?.toString() ?? 'none';
+  bool get hasOpenRequest =>
+      _openRequest != null && (_openRequest!['status'] == 'pending');
+  bool get openRequestApproved =>
+      _openRequest != null && (_openRequest!['status'] == 'approved');
+  bool get openRequestRejected =>
+      _openRequest != null && (_openRequest!['status'] == 'rejected');
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get agencyDeleted => _agencyDeleted;
@@ -237,6 +248,19 @@ class HostAgencyController extends ChangeNotifier {
       _errorMessage = null;
       _agencyDeleted = false;
       _deletionMessage = null;
+
+      // If user owns no agency, remember their latest open-request status
+      // (pending / rejected) so the screen can show the right state.
+      if (_agency == null) {
+        try {
+          _openRequest = await AgencyApiService().getMyOpenRequest();
+        } catch (e) {
+          _openRequest = null;
+        }
+      } else {
+        _openRequest = null;
+      }
+
       _subscribeToAgencyChanges();
     } catch (e) {
       _errorMessage = e.toString();
@@ -435,6 +459,63 @@ class HostAgencyController extends ChangeNotifier {
 
   Future<void> refresh() async {
     await _loadData();
+  }
+
+  /// Invite another user (by numeric id) to join this agency. The backend
+  /// sends them a notification (DM) with the agency & agent name; they can
+  /// accept or reject from their agency screen.
+  Future<Map<String, dynamic>> inviteMember(String targetNumericId) async {
+    final agencyId = _agency?['id'] as String?;
+    if (agencyId == null) return {'ok': false, 'message': 'لا توجد وكالة'};
+    if (targetNumericId.trim().isEmpty) {
+      return {'ok': false, 'message': 'يرجى إدخال آيدي المستخدم'};
+    }
+    try {
+      final result = await AgencyApiService().inviteMember(
+        agencyId: agencyId,
+        targetNumericId: targetNumericId.trim(),
+      );
+      if (result['ok'] == true) {
+        await _loadData();
+        return {'ok': true, 'message': 'تم إرسال الدعوة بنجاح'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل إرسال الدعوة'};
+    } catch (e) {
+      return {'ok': false, 'message': 'حدث خطأ: $e'};
+    }
+  }
+
+  /// Upload an image (agency photo or ID card) to Cloudinary and return its URL.
+  Future<String> uploadImageBytes(
+      Uint8List bytes, String fileName, {String folder = 'agency_open'}) async {
+    return CloudinaryService.uploadImageBytes(bytes,
+        folder: folder, fileName: fileName);
+  }
+
+  /// Submit the user's own hosting-agency open request for admin approval.
+  Future<Map<String, dynamic>> submitOpenRequest({
+    required String agencyName,
+    required String agencyId,
+    String phone = '',
+    String photoUrl = '',
+    String idCardUrl = '',
+  }) async {
+    try {
+      final result = await AgencyApiService().submitOpenRequest(
+        agencyName: agencyName,
+        agencyId: agencyId,
+        phone: phone,
+        photoUrl: photoUrl,
+        idCardUrl: idCardUrl,
+      );
+      if (result['ok'] == true) {
+        await _loadData();
+        return {'ok': true, 'message': 'تم إرسال طلبك بنجاح، جاري مراجعة الإدارة'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'حدث خطأ، حاول مرة أخرى'};
+    } catch (e) {
+      return {'ok': false, 'message': 'حدث خطأ: $e'};
+    }
   }
 
   void clearError() {

@@ -431,6 +431,171 @@ app.post('/api/admin/open-agency', async (req, res) => {
   } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
+// ---------- AGENCY OPEN REQUESTS (admin review) ----------
+
+app.get('/api/admin/open-requests', async (req, res) => {
+  try {
+    if (!adminAuth(req, res)) return res.json({ ok: false, error: 'Forbidden' });
+    const status = (req.query.status || 'pending').toString();
+    const { data, error } = await supabase
+      .from('agency_open_requests')
+      .select('*')
+      .eq('status', status)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    // Enrich with requester user info
+    const enriched = await Promise.all((data || []).map(async (r) => {
+      let requester = null;
+      try {
+        const { data: u } = await supabase.from('users').select('numeric_id, name, photo_url').eq('auth_uid', r.requested_by).maybeSingle();
+        requester = u;
+      } catch {}
+      return { ...r, requester };
+    }));
+    res.json({ ok: true, requests: enriched });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+app.post('/api/admin/open-request/approve', async (req, res) => {
+  try {
+    if (!adminAuth(req, res)) return res.json({ ok: false, error: 'Forbidden' });
+    const { request_id } = req.body;
+    if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+
+    const { data: req, error: rErr } = await supabase
+      .from('agency_open_requests')
+      .select('*')
+      .eq('id', request_id)
+      .single();
+    if (rErr || !req) return res.json({ ok: false, error: 'Request not found' });
+    if (req.status !== 'pending') return res.json({ ok: false, error: 'Already processed' });
+
+    const numeric_id = String(req.agency_id || '');
+    const agencyId = `AG${numeric_id}`;
+    const name = req.agency_name || `وكالة ${numeric_id}`;
+    const ownerAuthId = req.requested_by;
+    const type = req.agency_type || 'hosting';
+
+    // 1. Create agency (idempotent)
+    const { data: existing } = await supabase.from('agencies').select('id').eq('id', agencyId).maybeSingle();
+    if (!existing) {
+      const { data: userRow } = await supabase.from('users').select('auth_uid, name, numeric_id').eq('auth_uid', ownerAuthId).maybeSingle();
+      const { error: agencyErr } = await supabase.from('agencies').insert({
+        id: agencyId,
+        name,
+        owner_id: ownerAuthId,
+        agency_type: type,
+        description: `وكالة ${name}`,
+        photo_url: req.photo_url || '',
+        is_activated: true,
+        personal_name: userRow?.name || '',
+        national_id: req.id_card_url || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      if (agencyErr) return res.json({ ok: false, error: 'فشل إنشاء الوكالة: ' + agencyErr.message });
+    }
+
+    // 2. Owner membership
+    const { data: ownerMember } = await supabase
+      .from('host_agency_members')
+      .select('id')
+      .eq('agency_id', agencyId)
+      .eq('user_id', ownerAuthId)
+      .maybeSingle();
+    if (!ownerMember) {
+      await supabase.from('host_agency_members').insert({
+        agency_id: agencyId,
+        user_id: ownerAuthId,
+        role: 'owner',
+        status: 'active',
+        joined_at: new Date().toISOString(),
+      });
+    }
+
+    // 3. Wallet
+    const { data: wallet } = await supabase.from('agency_wallets').select('id').eq('agency_id', agencyId).maybeSingle();
+    if (!wallet) {
+      await supabase.from('agency_wallets').insert({
+        agency_id: agencyId,
+        diamonds_balance: 0,
+        total_recharged: 0,
+        total_withdrawn: 0,
+      });
+    }
+
+    // 4. Mark request approved
+    await supabase.from('agency_open_requests').update({
+      status: 'approved',
+      reviewed_by: 'admin',
+      reviewed_at: new Date().toISOString(),
+    }).eq('id', request_id);
+
+    // 5. DM notification to the owner (to numeric_id)
+    try {
+      const { data: targetUser } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', ownerAuthId).maybeSingle();
+      const toNumeric = targetUser?.numeric_id || numeric_id;
+      await supabase.from('dm_messages').insert({
+        from_user_id: 'system',
+        to_user_id: toNumeric,
+        from_name: 'النظام',
+        to_name: targetUser?.name || toNumeric,
+        text: `🎉 تمت الموافقة على طلبك وفتح وكالة الاستضافة "${name}" بنجاح! يمكنك الآن دعوة أصدقائك للانضمام إليها وإدارة أعضائك من داخل التطبيق.`,
+        is_read: false,
+      });
+    } catch (dmErr) { console.error('[APPROVE-OPEN-REQUEST] DM failed:', dmErr.message); }
+
+    // 6. Realtime broadcast to surface an instant banner
+    try {
+      await supabase.from('app_broadcasts').insert({
+        type: 'update',
+        title: 'تم فتح وكالتك بنجاح 🎉',
+        body: `أهلاً ${name}، تمت الموافقة على طلبك وفتح وكالة الاستضافة. يمكنك الآن دعوة الأعضاء وبدء الاستضافة.`,
+        target: 'specific',
+        is_active: true,
+        payload: { agency_id: agencyId, to_user: ownerAuthId },
+      });
+    } catch (bcErr) { console.error('[APPROVE-OPEN-REQUEST] broadcast failed:', bcErr.message); }
+
+    res.json({ ok: true, agency_id: agencyId });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+app.post('/api/admin/open-request/reject', async (req, res) => {
+  try {
+    if (!adminAuth(req, res)) return res.json({ ok: false, error: 'Forbidden' });
+    const { request_id, note } = req.body;
+    if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+
+    const { data: req, error: rErr } = await supabase.from('agency_open_requests').select('*').eq('id', request_id).single();
+    if (rErr || !req) return res.json({ ok: false, error: 'Request not found' });
+    if (req.status !== 'pending') return res.json({ ok: false, error: 'Already processed' });
+
+    await supabase.from('agency_open_requests').update({
+      status: 'rejected',
+      note: note || '',
+      reviewed_by: 'admin',
+      reviewed_at: new Date().toISOString(),
+    }).eq('id', request_id);
+
+    try {
+      const { data: targetUser } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', req.requested_by).maybeSingle();
+      const toNumeric = targetUser?.numeric_id || String(req.agency_id || '');
+      await supabase.from('dm_messages').insert({
+        from_user_id: 'system',
+        to_user_id: toNumeric,
+        from_name: 'النظام',
+        to_name: targetUser?.name || toNumeric,
+        text: `تم رفض طلب فتح وكالة "${req.agency_name}".${note ? `\nالسبب: ${note}` : ''}\nيمكنك التواصل مع الإدارة للمزيد.`,
+        is_read: false,
+      });
+    } catch (dmErr) { console.error('[REJECT-OPEN-REQUEST] DM failed:', dmErr.message); }
+
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
 // ---------- AGENCY REGISTER (new user creates account for existing agency) ----------
 app.post('/api/admin/agency-register', async (req, res) => {
   try {

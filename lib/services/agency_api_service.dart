@@ -191,6 +191,17 @@ class AgencyApiService {
     return data as List<dynamic>? ?? [];
   }
 
+  /// Invite a user (by numeric id) to join the agency. Sends them a DM.
+  Future<Map<String, dynamic>> inviteMember({
+    required String agencyId,
+    required String targetNumericId,
+  }) async {
+    return _post('/invite-member', body: {
+      'agency_id': agencyId,
+      'target_numeric_id': targetNumericId,
+    });
+  }
+
   // ─── User Lookup ───
 
   /// Get a user's balance by ID
@@ -218,6 +229,36 @@ class AgencyApiService {
     try {
       final data = await _get('/my-agency', queryParams: {'owner_uid': ownerUid});
       return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ─── Host Agency Open Requests (approval-gated) ───
+
+  /// Submit the caller's own hosting-agency open request for admin approval.
+  Future<Map<String, dynamic>> submitOpenRequest({
+    required String agencyName,
+    required String agencyId,
+    String phone = '',
+    String photoUrl = '',
+    String idCardUrl = '',
+  }) async {
+    return _post('/open-request', body: {
+      'agency_name': agencyName,
+      'agency_id': agencyId,
+      'phone': phone,
+      'photo_url': photoUrl,
+      'id_card_url': idCardUrl,
+    });
+  }
+
+  /// Get the caller's latest open request (or null if none).
+  Future<Map<String, dynamic>?> getMyOpenRequest() async {
+    try {
+      final data = await _get('/my-open-request');
+      final request = data['request'];
+      return request is Map<String, dynamic> ? request : null;
     } catch (e) {
       return null;
     }
