@@ -31,23 +31,18 @@ jobs:
         run: flutter analyze
 
       - name: Decode keystore & key.properties
-        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          import base64, os, pathlib
-          ks = pathlib.Path('android/upload-keystore.jks')
-          ks.write_bytes(base64.b64decode(os.environ['ANDROID_KEYSTORE_BASE64']))
-          pathlib.Path('android/key.properties').write_text(
-              "storePassword={}\nkeyPassword={}\nkeyAlias={}\nstoreFile=upload-keystore.jks\n".format(
-                  os.environ['ANDROID_STORE_PASSWORD'],
-                  os.environ['ANDROID_KEY_PASSWORD'],
-                  os.environ['ANDROID_KEY_ALIAS'],
-              )
-          )
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/upload-keystore.jks
+          echo "storePassword=$ANDROID_STORE_PASSWORD" > android/key.properties
+          echo "keyPassword=$ANDROID_KEY_PASSWORD" >> android/key.properties
+          echo "keyAlias=$ANDROID_KEY_ALIAS" >> android/key.properties
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
 
       - name: Build release APK
         run: flutter build apk --release
