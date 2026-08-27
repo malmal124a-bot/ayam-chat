@@ -1,0 +1,6 @@
+{
+  "name": "Admincore Dashboard",
+  "description": "A sophisticated dark admin dashboard featuring real-time visual metrics, interactive user growth analytics, transaction history controls, and system state monitors.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

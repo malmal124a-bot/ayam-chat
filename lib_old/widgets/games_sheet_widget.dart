@@ -1,0 +1,263 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controllers/game_controller.dart';
+import '../controllers/wallet_controller.dart';
+
+class GamesSheetWidget extends StatelessWidget {
+  const GamesSheetWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F172A),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            _buildHeader(context),
+            
+            // SIDE-BY-SIDE TABS: Right Tab = Entertainment, Left Tab = Betting
+            const TabBar(
+              indicatorColor: Colors.amber,
+              labelColor: Colors.amber,
+              unselectedLabelColor: Colors.white54,
+              indicatorWeight: 3,
+              labelStyle: TextStyle(
+                fontWeight: FontWeight.bold, 
+                fontSize: 16, 
+                fontFamily: 'Cairo'
+              ),
+              tabs: [
+                Tab(text: 'ألعاب المراهنات'), // Left Tab
+                Tab(text: 'ألعاب ترفيهية'), // Right Tab
+              ],
+            ),
+            
+            const Divider(color: Colors.white10, height: 1),
+
+            Expanded(
+              child: Consumer2<GameController, WalletController>(
+                builder: (context, gameController, walletController, _) {
+                  return TabBarView(
+                    children: [
+                      // Tab 1 (Left): ألعاب المراهنات (Betting Games like NovaX)
+                      _buildGamesGrid(context, gameController.bettingGames, walletController),
+                      
+                      // Tab 2 (Right): ألعاب ترفيهية (Entertainment Games)
+                      _buildGamesGrid(context, gameController.entertainmentGames, walletController),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        Container(
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Colors.white24,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Game Center',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo'
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close, color: Colors.white54),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white10,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget _buildGamesGrid(BuildContext context, List<GameModel> games, WalletController walletController) {
+    if (games.isEmpty) {
+      return const Center(
+        child: Text(
+          'قريباً.. ألعاب جديدة ممتعة',
+          style: TextStyle(color: Colors.white24, fontFamily: 'Cairo', fontSize: 16),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(24),
+      itemCount: games.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
+        childAspectRatio: 1.0,
+      ),
+      itemBuilder: (context, index) {
+        final game = games[index];
+        return _buildGameCard(context, game, walletController);
+      },
+    );
+  }
+
+  Widget _buildGameCard(BuildContext context, GameModel game, WalletController walletController) {
+    return GestureDetector(
+      onTap: () => _handleGameTap(context, game, walletController),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              game.themeColor.withValues(alpha: 0.15),
+              game.themeColor.withValues(alpha: 0.05),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: game.themeColor.withValues(alpha: 0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: game.themeColor.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: game.themeColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: game.imageAsset != null 
+                ? Image.asset(game.imageAsset!, width: 40, height: 40, fit: BoxFit.contain)
+                : Icon(game.icon, color: game.themeColor, size: 40),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              game.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Cairo'
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              game.category == GameCategory.betting ? 'مراهنات' : 'ترفيه',
+              style: TextStyle(
+                color: game.themeColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Cairo'
+              ),
+            ),
+            if (game.entryFee > 0) ...[
+              const SizedBox(height: 8),
+              TextEntryFee(
+                fee: game.entryFee,
+                diamonds: walletController.diamonds.value.toInt(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleGameTap(BuildContext context, GameModel game, WalletController walletController) {
+    // Check entry fee for betting games
+    if (game.category == GameCategory.betting && game.entryFee > 0) {
+      if (walletController.diamonds.value < game.entryFee) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('ليس لديك الماس الكافي للعب هذه اللعبة'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
+      // Deduct entry fee
+      walletController.deductDiamonds(game.entryFee);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'اللعبة ${game.title} قيد التحضير.. انتظرونا!',
+          style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.indigoAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+}
+
+class TextEntryFee extends StatelessWidget {
+  final int fee;
+  final int diamonds;
+
+  const TextEntryFee({super.key, required this.fee, required this.diamonds});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasEnough = diamonds >= fee;
+    return Text(
+      'رسوم الدخول: $fee 💎',
+      style: TextStyle(
+        color: hasEnough ? Colors.amber : Colors.red,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+// Helper function to show games modal
+void showGamesModal(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black87,
+    builder: (context) => const GamesSheetWidget(),
+  );
+}

@@ -1,0 +1,185 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    
+    // Helper variables
+    "admin_roles": {
+      ".validate": "newData.val() === 'owner' || newData.val() === 'super_admin' || newData.val() === 'regional_manager' || newData.val() === 'app_manager' || newData.val() === 'agency_admin' || newData.val() === 'banner_admin' || newData.val() === 'moderator'"
+    },
+    
+    "financial_admin_roles": {
+      ".validate": "newData.val() === 'owner' || newData.val() === 'super_admin'"
+    },
+    
+    // Users collection
+    "users": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid == $userId || root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator'])",
+        ".write": "auth != null && (auth.uid == $userId || root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator'])",
+        
+        "role": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']"
+        },
+        "balance": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']"
+        },
+        "diamonds": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']"
+        },
+        "vipLevel": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']"
+        },
+        "svipLevel": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']"
+        },
+        "level": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']"
+        },
+        "isBanned": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'moderator']"
+        },
+        "banReason": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'moderator']"
+        }
+      }
+    },
+    
+    // Rooms collection
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        
+        "participants": {
+          "$userId": {
+            ".read": "auth != null",
+            ".write": "auth != null && (auth.uid == $userId || root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator'])"
+          }
+        },
+        
+        "messages": {
+          "$messageId": {
+            ".read": "auth != null",
+            ".create": "auth != null",
+            ".update": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'moderator']",
+            ".delete": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'moderator']"
+          }
+        }
+      }
+    },
+    
+    // Agencies collection
+    "agencies": {
+      "$agencyId": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Agency requests collection
+    "agency_requests": {
+      "$requestId": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Store items collection
+    "store_items": {
+      "$itemId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Banners collection
+    "banners": {
+      "$bannerId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Reports collection
+    "reports": {
+      "$reportId": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Banned devices collection
+    "banned_devices": {
+      "$deviceId": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Banned IPs collection
+    "banned_ips": {
+      "$ipAddress": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // System config collection
+    "system_config": {
+      "$configId": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'owner'"
+      }
+    },
+    
+    // Financial logs collection
+    "financial_logs": {
+      "$logId": {
+        ".read": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']",
+        ".create": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin']",
+        ".update": "root.child('users').child(auth.uid).child('role').val() === 'owner'",
+        ".delete": "root.child('users').child(auth.uid).child('role').val() === 'owner'"
+      }
+    },
+    
+    // Gifts collection
+    "gifts": {
+      "$giftId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Families collection
+    "families": {
+      "$familyId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']",
+        
+        "members": {
+          "$userId": {
+            ".read": "auth != null",
+            ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+          }
+        }
+      }
+    },
+    
+    // Leaderboards collection
+    "leaderboards": {
+      "$leaderboardId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    },
+    
+    // Tasks collection
+    "tasks": {
+      "$taskId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() in ['owner', 'super_admin', 'regional_manager', 'app_manager', 'agency_admin', 'banner_admin', 'moderator']"
+      }
+    }
+  }
+}

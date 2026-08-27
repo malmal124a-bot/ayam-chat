@@ -1,0 +1,40 @@
+redirectsOrigin = "config"
+plugins = []
+headers = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "D:\\500\\New Folder\\alpha\\New folder\\zero\\admincore-dashboard\\dist"
+publishOrigin = "config"
+commandOrigin = "ui"
+base = "D:\\500\\New Folder\\alpha\\New folder\\zero\\admincore-dashboard"
+command = "pnpm run build"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

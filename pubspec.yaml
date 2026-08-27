@@ -1,0 +1,66 @@
+name: ayam_chat
+description: "An advanced voice chat application."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  provider: ^6.1.1
+  agora_rtc_engine: ^6.3.2
+  shared_preferences: ^2.3.2
+  lottie: ^3.1.2
+  video_player: ^2.9.1
+  permission_handler: ^12.0.3
+  image_picker: ^1.1.2
+  file_picker: ^8.1.2
+  cached_network_image: ^3.4.1
+  speech_to_text: ^7.4.0
+  path_provider: ^2.1.4
+  easy_localization: ^3.0.7
+  intl: ^0.20.2
+  url_launcher: ^6.3.0
+  flutter_tts: ^4.0.2
+  audioplayers: ^6.0.0
+  svgaplayer_flutter: ^2.2.0
+  supabase_flutter: ^2.17.1
+  realtime_client: ^2.13.0
+  google_sign_in: ^6.3.0
+  http: ^1.2.2
+
+dependency_overrides:
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/Asad/
+    - assets/vip/
+    - assets/store_assets/
+    - assets/translations/
+    - assets/audio/
+    - assets/icons/
+    - assets/emojis/
+    - assets/gifts/
+    - assets/rocket/
+    - assets/entry_effects/
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/images/ic_launcher.jpeg"
+  min_sdk_android: 21
+  web:
+    generate: false

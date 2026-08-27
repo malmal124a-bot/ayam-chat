@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة تحكم الوكالة</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1923;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    #root { min-height: 100vh; }
+
+    /* ─── Variables ─── */
+    :root {
+      --gold: #d4a745;
+      --gold-light: #f0d060;
+      --bg: #0f1923;
+      --card: #1a2736;
+      --card-hover: #1f3044;
+      --border: #2a3a4a;
+      --text: #e0e0e0;
+      --muted: #7a8a9a;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+      --info: #3498db;
+    }
+
+    /* ─── Layout ─── */
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 240px;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+    .sidebar-logo h2 { color: var(--gold); font-size: 18px; }
+    .sidebar-logo p { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .sidebar nav { flex: 1; padding: 10px 0; }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s;
+      border-right: 3px solid transparent;
+    }
+    .sidebar nav a:hover { background: var(--card-hover); color: var(--text); }
+    .sidebar nav a.active {
+      color: var(--gold);
+      background: rgba(212, 167, 69, 0.1);
+      border-right-color: var(--gold);
+    }
+    .sidebar-footer {
+      padding: 15px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-footer button {
+      width: 100%;
+      padding: 10px;
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(231, 76, 60, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .sidebar-footer button:hover { background: rgba(231, 76, 60, 0.25); }
+    .main-content { flex: 1; margin-right: 240px; padding: 24px; }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .card-header h3 {
+      color: var(--gold);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* ─── Stats Grid ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    .stat-card .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ─── Forms ─── */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--gold);
+    }
+    .form-row { display: flex; gap: 14px; }
+    .form-row .form-group { flex: 1; }
+
+    /* ─── Buttons ─── */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .btn-gold {
+      background: var(--gold);
+      color: #000;
+    }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-success {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+    .btn-success:hover { background: rgba(46, 204, 113, 0.25); }
+    .btn-danger {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+    .btn-danger:hover { background: rgba(231, 76, 60, 0.25); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* ─── Table ─── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    tr:hover td { background: var(--card-hover); }
+
+    /* ─── Badges ─── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-success { background: rgba(46, 204, 113, 0.15); color: var(--success); }
+    .badge-warning { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+    .badge-danger { background: rgba(231, 76, 60, 0.15); color: var(--danger); }
+    .badge-info { background: rgba(52, 152, 219, 0.15); color: var(--info); }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 9999;
+      animation: slideDown 0.3s ease;
+    }
+    .toast-success { background: var(--success); color: #fff; }
+    .toast-error { background: var(--danger); color: #fff; }
+    @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
+    /* ─── Login ─── */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 400px;
+      max-width: 90vw;
+    }
+    .login-card h1 {
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 22px;
+    }
+    .login-card .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 30px;
+      font-size: 13px;
+    }
+    .login-card .btn { width: 100%; margin-top: 10px; padding: 12px; }
+
+    /* ─── Loading ─── */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      color: var(--muted);
+    }
+
+    /* ─── Tabs ─── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .tabs button {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tabs button:hover { color: var(--text); }
+    .tabs button.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* ─── Empty state ─── */
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-CxsdCB6a.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

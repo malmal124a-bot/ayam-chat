@@ -1,0 +1,173 @@
+export interface IconRegistryEntry {
+  key: string;
+  name: string;
+  icon: string;
+  category: string;
+  files: string[];
+}
+
+export const iconRegistry: IconRegistryEntry[] = [
+  // Navigation & Actions
+  { key: 'Icons.close', name: 'Close', icon: 'close', category: 'navigation', files: ['room_screen.dart', 'room_discover_screen.dart', 'room_settings_screen.dart', 'mixer_panel.dart', 'seat_style_panel.dart', 'volume_panel.dart', 'vip_center_screen.dart', 'vip_intro_screen.dart', 'main.dart'] },
+  { key: 'Icons.close_rounded', name: 'Close Rounded', icon: 'close', category: 'navigation', files: ['agent_recharge_tab.dart', 'agency_withdrawal_screen.dart', 'agency_owner_wallet_screen.dart', 'agency_chat_screen.dart'] },
+  { key: 'Icons.clear', name: 'Clear', icon: 'clear', category: 'navigation', files: ['room_discover_screen.dart'] },
+  { key: 'Icons.minimize', name: 'Minimize', icon: 'minimize', category: 'navigation', files: ['room_screen.dart'] },
+  { key: 'Icons.arrow_back', name: 'Arrow Back', icon: 'arrow_back', category: 'navigation', files: ['room_discover_screen.dart', 'notifications_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.arrow_back_ios', name: 'Arrow Back iOS', icon: 'arrow_back_ios', category: 'navigation', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.arrow_back_ios_new_rounded', name: 'Arrow Back iOS New', icon: 'arrow_back_ios', category: 'navigation', files: ['host_agency_screen.dart', 'agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.arrow_back_ios_rounded', name: 'Arrow Back iOS Rounded', icon: 'arrow_back_ios', category: 'navigation', files: ['agent_recharge_tab.dart', 'agent_recharge_widgets.dart', 'agency_chat_screen.dart'] },
+  { key: 'Icons.arrow_forward_ios', name: 'Arrow Forward iOS', icon: 'arrow_forward_ios', category: 'navigation', files: ['union_detail_screen.dart', 'union_manage_screen.dart'] },
+  { key: 'Icons.arrow_forward_rounded', name: 'Arrow Forward Rounded', icon: 'arrow_forward', category: 'navigation', files: ['agency_withdrawal_screen.dart'] },
+  { key: 'Icons.chevron_left_rounded', name: 'Chevron Left Rounded', icon: 'chevron_left', category: 'navigation', files: ['agent_recharge_tab.dart'] },
+  { key: 'Icons.keyboard_arrow_down', name: 'Keyboard Arrow Down', icon: 'keyboard_arrow_down', category: 'navigation', files: ['room_screen.dart'] },
+  { key: 'Icons.keyboard_arrow_up_rounded', name: 'Keyboard Arrow Up', icon: 'keyboard_arrow_up', category: 'navigation', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.arrow_downward', name: 'Arrow Downward', icon: 'arrow_downward', category: 'navigation', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.arrow_upward', name: 'Arrow Upward', icon: 'arrow_upward', category: 'navigation', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.arrow_downward_rounded', name: 'Arrow Downward Rounded', icon: 'arrow_downward', category: 'navigation', files: ['agent_diamond_tab.dart', 'agent_usd_tab.dart'] },
+  { key: 'Icons.arrow_upward_rounded', name: 'Arrow Upward Rounded', icon: 'arrow_upward', category: 'navigation', files: ['agent_diamond_tab.dart', 'agent_usd_tab.dart'] },
+  { key: 'Icons.arrow_drop_down', name: 'Arrow Drop Down', icon: 'arrow_drop_down', category: 'navigation', files: ['bind_phone_screen.dart'] },
+  { key: 'Icons.exit_to_app', name: 'Exit to App', icon: 'exit_to_app', category: 'navigation', files: ['room_screen.dart'] },
+  { key: 'Icons.exit_to_app_rounded', name: 'Exit to App Rounded', icon: 'exit_to_app', category: 'navigation', files: ['agency_exit_screen.dart'] },
+  { key: 'Icons.search', name: 'Search', icon: 'search', category: 'navigation', files: ['country_picker_screen.dart', 'game_teaming_screen.dart', 'music_screen.dart', 'union_list_screen.dart', 'agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.search_rounded', name: 'Search Rounded', icon: 'search', category: 'navigation', files: ['host_agency_screen.dart', 'agent_recharge_tab.dart', 'agency_withdrawal_screen.dart', 'agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.refresh', name: 'Refresh', icon: 'refresh', category: 'navigation', files: ['reports_admin_screen.dart', 'agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.refresh_rounded', name: 'Refresh Rounded', icon: 'refresh', category: 'navigation', files: ['host_dashboard_screen.dart', 'agent_recharge_portal_screen.dart'] },
+  { key: 'Icons.tune_rounded', name: 'Tune/Filters', icon: 'tune', category: 'navigation', files: ['agent_history_tab.dart', 'agent_recharge_tab.dart'] },
+  { key: 'Icons.edit', name: 'Edit', icon: 'edit', category: 'actions', files: ['edit_profile_screen.dart', 'union_manage_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.copy', name: 'Copy', icon: 'copy', category: 'actions', files: ['user_profile.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.delete_forever', name: 'Delete Forever', icon: 'delete_forever', category: 'actions', files: ['union_manage_screen.dart'] },
+  { key: 'Icons.delete_outline_rounded', name: 'Delete Outline', icon: 'delete_outline', category: 'actions', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.add', name: 'Add', icon: 'add', category: 'actions', files: ['seat_area.dart', 'union_list_screen.dart', 'union_notice_screen.dart'] },
+  { key: 'Icons.add_rounded', name: 'Add Rounded', icon: 'add', category: 'actions', files: ['agent_history_tab.dart'] },
+  { key: 'Icons.remove_rounded', name: 'Remove Rounded', icon: 'remove', category: 'actions', files: ['agent_history_tab.dart'] },
+  { key: 'Icons.send', name: 'Send', icon: 'send', category: 'actions', files: ['message_reply_detail_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.send_rounded', name: 'Send Rounded', icon: 'send', category: 'actions', files: ['agency_withdrawal_screen.dart', 'agency_exit_screen.dart', 'agency_chat_screen.dart'] },
+
+  // Profile & Users
+  { key: 'Icons.person', name: 'Person', icon: 'person', category: 'users', files: ['room_screen.dart', 'follow_recent_screen.dart', 'host_dashboard_screen.dart', 'gift_panel.dart', 'seat_area.dart', 'room_settings_screen.dart', 'edit_profile_screen.dart', 'message_reply_detail_screen.dart', 'union_apply_screen.dart', 'union_detail_screen.dart', 'union_members_screen.dart', 'agency_withdrawal_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.person_rounded', name: 'Person Rounded', icon: 'person', category: 'users', files: ['agent_recharge_widgets.dart', 'agency_chat_models.dart', 'agency_invite_by_id_screen.dart', 'agency_owner_wallet_screen.dart', 'agency_chat_screen.dart'] },
+  { key: 'Icons.person_add', name: 'Person Add', icon: 'person_add', category: 'users', files: ['room_screen.dart'] },
+  { key: 'Icons.person_add_rounded', name: 'Person Add Rounded', icon: 'person_add', category: 'users', files: ['agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.person_off', name: 'Person Off', icon: 'person_off', category: 'users', files: ['user_profile.dart'] },
+  { key: 'Icons.person_search_rounded', name: 'Person Search', icon: 'person_search', category: 'users', files: ['agency_supervisor_dashboard_screen.dart', 'agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.group', name: 'Group', icon: 'group', category: 'users', files: ['union_detail_screen.dart', 'union_edit_screen.dart', 'union_list_screen.dart'] },
+  { key: 'Icons.group_add_rounded', name: 'Group Add Rounded', icon: 'group_add', category: 'users', files: ['agency_supervisor_dashboard_screen.dart', 'agency_profile_screen.dart'] },
+  { key: 'Icons.groups_rounded', name: 'Groups Rounded', icon: 'groups', category: 'users', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.people', name: 'People', icon: 'people', category: 'users', files: ['union_manage_screen.dart'] },
+  { key: 'Icons.people_rounded', name: 'People Rounded', icon: 'people', category: 'users', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.male', name: 'Male', icon: 'male', category: 'users', files: ['follow_recent_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.female', name: 'Female', icon: 'female', category: 'users', files: ['follow_recent_screen.dart', 'user_profile_screen.dart'] },
+
+  // Communication & Chat
+  { key: 'Icons.chat', name: 'Chat', icon: 'chat', category: 'chat', files: ['room_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.chat_bubble_outline_rounded', name: 'Chat Bubble Outline', icon: 'chat_bubble_outline', category: 'chat', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.chat_bubble_rounded', name: 'Chat Bubble', icon: 'chat_bubble', category: 'chat', files: ['agency_supervisor_dashboard_screen.dart'] },
+  { key: 'Icons.comment_outlined', name: 'Comment Outlined', icon: 'comment', category: 'chat', files: ['agent_usd_tab.dart'] },
+  { key: 'Icons.notifications', name: 'Notifications', icon: 'notifications', category: 'chat', files: ['function_panel.dart'] },
+  { key: 'Icons.notifications_outlined', name: 'Notifications Outlined', icon: 'notifications_outlined', category: 'chat', files: ['notifications_screen.dart'] },
+  { key: 'Icons.alternate_email', name: 'Alternate Email', icon: 'alternate_email', category: 'chat', files: ['about_screen.dart'] },
+  { key: 'Icons.link', name: 'Link', icon: 'link', category: 'chat', files: ['room_screen.dart'] },
+
+  // Social Media
+  { key: 'Icons.facebook', name: 'Facebook', icon: 'facebook', category: 'social', files: ['room_screen.dart', 'about_screen.dart'] },
+  { key: 'Icons.telegram', name: 'Telegram', icon: 'telegram', category: 'social', files: ['about_screen.dart'] },
+  { key: 'Icons.flutter_dash', name: 'Flutter Dash', icon: 'flutter_dash', category: 'social', files: ['room_screen.dart'] },
+
+  // Audio & Video
+  { key: 'Icons.mic_off', name: 'Mic Off', icon: 'mic_off', category: 'audio', files: ['user_profile.dart'] },
+  { key: 'Icons.mic_off_rounded', name: 'Mic Off Rounded', icon: 'mic_off', category: 'audio', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.mic_rounded', name: 'Mic Rounded', icon: 'mic', category: 'audio', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.volume_mute', name: 'Volume Mute', icon: 'volume_mute', category: 'audio', files: ['volume_panel.dart'] },
+  { key: 'Icons.volume_up', name: 'Volume Up', icon: 'volume_up', category: 'audio', files: ['volume_panel.dart'] },
+  { key: 'Icons.music_note', name: 'Music Note', icon: 'music_note', category: 'audio', files: ['room_screen.dart', 'music_screen.dart', 'about_screen.dart'] },
+  { key: 'Icons.headset_off', name: 'Headset Off', icon: 'headset_off', category: 'audio', files: ['room_discover_screen.dart'] },
+  { key: 'Icons.movie_creation_outlined', name: 'Movie Creation', icon: 'movie_creation', category: 'audio', files: ['vip_center_screen.dart'] },
+  { key: 'Icons.play_arrow_rounded', name: 'Play Arrow', icon: 'play_arrow', category: 'audio', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.pause_rounded', name: 'Pause Rounded', icon: 'pause', category: 'audio', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.graphic_eq_rounded', name: 'Graphic Equalizer', icon: 'graphic_eq', category: 'audio', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.camera_alt', name: 'Camera Alt', icon: 'camera_alt', category: 'media', files: ['setup_profile_screen.dart', 'union_create_screen.dart'] },
+  { key: 'Icons.camera_alt_outlined', name: 'Camera Alt Outlined', icon: 'camera_alt', category: 'media', files: ['about_screen.dart'] },
+  { key: 'Icons.image', name: 'Image', icon: 'image', category: 'media', files: ['room_screen.dart', 'message_reply_detail_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.image_outlined', name: 'Image Outlined', icon: 'image', category: 'media', files: ['room_settings_screen.dart'] },
+  { key: 'Icons.image_rounded', name: 'Image Rounded', icon: 'image', category: 'media', files: ['agency_chat_screen.dart'] },
+  { key: 'Icons.broken_image', name: 'Broken Image', icon: 'broken_image', category: 'media', files: ['r.dart', 'room_screen.dart', 'room_discover_screen.dart', 'message_reply_detail_screen.dart', 'user_profile_screen.dart'] },
+
+  // Gifts & Economy
+  { key: 'Icons.card_giftcard', name: 'Card Giftcard', icon: 'card_giftcard', category: 'economy', files: ['room_screen.dart', 'gift_panel.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.monetization_on', name: 'Monetization On', icon: 'monetization_on', category: 'economy', files: ['backpack_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.diamond', name: 'Diamond', icon: 'diamond', category: 'economy', files: ['rank_screen.dart'] },
+  { key: 'Icons.diamond_rounded', name: 'Diamond Rounded', icon: 'diamond', category: 'economy', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.currency_exchange', name: 'Currency Exchange', icon: 'currency_exchange', category: 'economy', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.account_balance', name: 'Account Balance', icon: 'account_balance', category: 'economy', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.account_balance_rounded', name: 'Account Balance Rounded', icon: 'account_balance', category: 'economy', files: ['agent_usd_tab.dart'] },
+  { key: 'Icons.receipt_long', name: 'Receipt Long', icon: 'receipt_long', category: 'economy', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.warning_amber', name: 'Warning Amber', icon: 'warning_amber', category: 'economy', files: ['agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.warning_rounded', name: 'Warning Rounded', icon: 'warning', category: 'economy', files: ['agency_withdrawal_screen.dart'] },
+
+  // Rankings & Achievements
+  { key: 'Icons.emoji_events', name: 'Emoji Events (Trophy)', icon: 'emoji_events', category: 'rankings', files: ['rank_screen.dart', 'user_profile_screen.dart'] },
+  { key: 'Icons.emoji_events_rounded', name: 'Emoji Events Rounded', icon: 'emoji_events', category: 'rankings', files: ['agency_supervisor_dashboard_screen.dart'] },
+  { key: 'Icons.stars', name: 'Stars', icon: 'stars', category: 'rankings', files: ['rank_screen.dart'] },
+  { key: 'Icons.military_tech', name: 'Military Tech', icon: 'military_tech', category: 'rankings', files: ['rank_screen.dart'] },
+  { key: 'Icons.military_tech_rounded', name: 'Military Tech Rounded', icon: 'military_tech', category: 'rankings', files: ['agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.workspace_premium', name: 'Workspace Premium', icon: 'workspace_premium', category: 'rankings', files: ['rank_screen.dart', 'user_profile.dart'] },
+  { key: 'Icons.workspace_premium_rounded', name: 'Workspace Premium Rounded', icon: 'workspace_premium', category: 'rankings', files: ['agency_chat_models.dart'] },
+  { key: 'Icons.verified', name: 'Verified', icon: 'verified', category: 'rankings', files: ['rank_screen.dart', 'vip_center_screen.dart'] },
+  { key: 'Icons.verified_rounded', name: 'Verified Rounded', icon: 'verified', category: 'rankings', files: ['agency_withdrawal_screen.dart'] },
+  { key: 'Icons.verified_outlined', name: 'Verified Outlined', icon: 'verified_outlined', category: 'rankings', files: ['level_screen.dart'] },
+  { key: 'Icons.favorite', name: 'Favorite', icon: 'favorite', category: 'rankings', files: ['room_screen.dart', 'room_discover_screen.dart', 'room_header.dart', 'user_profile.dart', 'rank_screen.dart'] },
+  { key: 'Icons.favorite_border', name: 'Favorite Border', icon: 'favorite_border', category: 'rankings', files: ['room_discover_screen.dart', 'room_header.dart'] },
+  { key: 'Icons.star', name: 'Star', icon: 'star', category: 'rankings', files: ['vip_center_screen.dart'] },
+  { key: 'Icons.star_outline', name: 'Star Outline', icon: 'star_outline', category: 'rankings', files: ['level_screen.dart'] },
+  { key: 'Icons.star_rounded', name: 'Star Rounded', icon: 'star', category: 'rankings', files: ['agency_supervisor_dashboard_screen.dart', 'agency_chat_models.dart'] },
+  { key: 'Icons.auto_awesome', name: 'Auto Awesome', icon: 'auto_awesome', category: 'rankings', files: ['rank_screen.dart'] },
+  { key: 'Icons.whatshot', name: 'Whatshot', icon: 'whatshot', category: 'rankings', files: ['rank_screen.dart'] },
+  { key: 'Icons.leaderboard_rounded', name: 'Leaderboard', icon: 'leaderboard', category: 'rankings', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.trophyIcon', name: 'Trophy Icon (Dynamic)', icon: 'emoji_events', category: 'rankings', files: ['rank_screen.dart'] },
+
+  // Agency & Union
+  { key: 'Icons.add_business_rounded', name: 'Add Business', icon: 'add_business', category: 'agency', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.business_rounded', name: 'Business', icon: 'business', category: 'agency', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.badge_rounded', name: 'Badge', icon: 'badge', category: 'agency', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.description_rounded_agency', name: 'Description', icon: 'description', category: 'agency', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.flag_rounded', name: 'Flag Rounded', icon: 'flag', category: 'agency', files: ['host_agency_screen.dart', 'agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.phone_rounded', name: 'Phone Rounded', icon: 'phone', category: 'agency', files: ['host_agency_screen.dart'] },
+  { key: 'Icons.tag', name: 'Tag', icon: 'tag', category: 'agency', files: ['agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.check_circle_agency', name: 'Check Circle', icon: 'check_circle', category: 'agency', files: ['badges_screen.dart', 'host_dashboard_screen.dart', 'language_selection_screen.dart'] },
+  { key: 'Icons.check_circle_rounded', name: 'Check Circle Rounded', icon: 'check_circle', category: 'agency', files: ['agency_invite_by_id_screen.dart', 'agency_chat_screen.dart', 'agency_owner_wallet_screen.dart', 'agency_profile_screen.dart'] },
+  { key: 'Icons.info_outline_rounded', name: 'Info Outline', icon: 'info_outline', category: 'agency', files: ['agent_diamond_tab.dart', 'agency_chat_screen.dart'] },
+  { key: 'Icons.error_outline', name: 'Error Outline', icon: 'error_outline', category: 'agency', files: ['agency_dashboard_screen.dart', 'host_dashboard_screen.dart', 'agency_supervisor_dashboard_screen.dart', 'agency_owner_wallet_screen.dart'] },
+  { key: 'Icons.error_outline_rounded', name: 'Error Outline Rounded', icon: 'error_outline', category: 'agency', files: ['agent_history_tab.dart', 'agent_usd_tab.dart', 'agency_invite_by_id_screen.dart'] },
+  { key: 'Icons.shield_outlined', name: 'Shield Outlined', icon: 'shield_outlined', category: 'agency', files: ['blacklist_screen.dart'] },
+  { key: 'Icons.campaign', name: 'Campaign', icon: 'campaign', category: 'agency', files: ['union_manage_screen.dart'] },
+  { key: 'Icons.settings', name: 'Settings', icon: 'settings', category: 'agency', files: ['function_panel.dart', 'union_detail_screen.dart'] },
+  { key: 'Icons.history', name: 'History', icon: 'history', category: 'agency', files: ['union_manage_screen.dart'] },
+
+  // VIP & Levels
+  { key: 'Icons.lock', name: 'Lock', icon: 'lock', category: 'vip', files: ['badges_screen.dart'] },
+  { key: 'Icons.lock_outline', name: 'Lock Outline', icon: 'lock_outline', category: 'vip', files: ['level_screen.dart'] },
+  { key: 'Icons.lock_rounded', name: 'Lock Rounded', icon: 'lock', category: 'vip', files: ['host_dashboard_screen.dart', 'agency_withdrawal_screen.dart', 'agency_chat_screen.dart'] },
+  { key: 'Icons.vip_center', name: 'VIP Center', icon: 'star', category: 'vip', files: ['vip_center_screen.dart'] },
+  { key: 'Icons.cake', name: 'Cake', icon: 'cake', category: 'profile', files: ['edit_profile_screen.dart'] },
+  { key: 'Icons.flag', name: 'Flag', icon: 'flag', category: 'profile', files: ['user_profile.dart'] },
+  { key: 'Icons.flag_outlined', name: 'Flag Outlined', icon: 'flag_outlined', category: 'profile', files: ['reports_admin_screen.dart'] },
+  { key: 'Icons.block', name: 'Block', icon: 'block', category: 'profile', files: ['user_profile.dart'] },
+  { key: 'Icons.remove_circle_outline', name: 'Remove Circle', icon: 'remove_circle_outline', category: 'profile', files: ['user_profile.dart'] },
+  { key: 'Icons.meeting_room', name: 'Meeting Room', icon: 'meeting_room', category: 'profile', files: ['user_profile_screen.dart'] },
+
+  // UI Elements
+  { key: 'Icons.chair', name: 'Chair', icon: 'chair', category: 'ui', files: ['seat_style_panel.dart'] },
+  { key: 'Icons.check_circle_ui', name: 'Check Circle (UI)', icon: 'check_circle', category: 'ui', files: ['badges_screen.dart', 'host_dashboard_screen.dart', 'language_selection_screen.dart'] },
+  { key: 'Icons.crop_square_outlined', name: 'Crop Square', icon: 'crop_square', category: 'ui', files: ['level_screen.dart'] },
+  { key: 'Icons.radio_button_checked', name: 'Radio Button Checked', icon: 'radio_button_checked', category: 'ui', files: ['report_room_screen.dart', 'report_user_screen.dart'] },
+  { key: 'Icons.radio_button_off', name: 'Radio Button Off', icon: 'radio_button_off', category: 'ui', files: ['report_room_screen.dart', 'report_user_screen.dart'] },
+  { key: 'Icons.circle', name: 'Circle', icon: 'circle', category: 'ui', files: ['user_profile_screen.dart'] },
+  { key: 'Icons.fiber_manual_record_rounded', name: 'Fiber Manual Record', icon: 'fiber_manual_record', category: 'ui', files: ['agency_chat_screen.dart'] },
+
+  // Time & Date
+  { key: 'Icons.access_time', name: 'Access Time', icon: 'access_time', category: 'info', files: ['backpack_screen.dart'] },
+
+  // Misc
+  { key: 'Icons.gavel_rounded', name: 'Gavel', icon: 'gavel', category: 'misc', files: ['splash_screen.dart'] },
+  { key: 'Icons.description_rounded_misc', name: 'Description', icon: 'description', category: 'misc', files: ['host_agency_screen.dart'] },
+];
