@@ -318,9 +318,7 @@ class AgencyController extends ChangeNotifier {
           }
         } catch (_) {}
 
-        if (_myOwnedAgency == null) {
-          _myOwnedAgency = await _repository.getMyAgency(user.id, type: AgencyType.modife);
-        }
+        _myOwnedAgency ??= await _repository.getMyAgency(user.id, type: AgencyType.modife);
 
         try {
           _joinedAgency = _agencies.firstWhere(
