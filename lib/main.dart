@@ -39,6 +39,7 @@ import 'services/theme_service.dart';
 import 'services/screen_visual_service.dart';
 import 'services/level_service.dart';
 import 'services/badge_necklace_services.dart';
+import 'services/realtime_updates_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,6 +104,9 @@ class _SplashScreenState extends State<_SplashScreen>
 
       _updateStatus('الاتصال بالخادم...');
       await SupabaseService.initialize();
+
+      // Start live updates stream (broadcasts + reactive config).
+      RealtimeUpdatesService.instance.start();
 
       if (kIsWeb) {
         await AuthController().handleWebAuthCallback();
@@ -242,6 +246,7 @@ class AyamChatApp extends StatelessWidget {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Ayam Chat',
+          scaffoldMessengerKey: RealtimeUpdatesService.instance.messengerKey,
           theme: AppTheme.theme,
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,
