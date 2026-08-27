@@ -38,10 +38,11 @@ create policy "app_broadcasts_delete" on public.app_broadcasts for delete using 
 -- 2) Make sure all tables the app reacts to are broadcast over Realtime.
 --    (safe: adds each only if not already in the publication)
 do $$
+declare
+  t text;
 begin
   foreach t in array array[
     'app_broadcasts',
-    'notifications',
     'app_config',
     'store_items',
     'rooms',
@@ -57,7 +58,8 @@ begin
     'bds'
   ]
   loop
-    if not exists (
+    if to_regclass('public.' || t) is not null
+       and not exists (
       select 1 from pg_publication_tables
       where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
     ) then
