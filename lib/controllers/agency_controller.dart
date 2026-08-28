@@ -309,26 +309,24 @@ class AgencyController extends ChangeNotifier {
               .from('agencies')
               .select('*')
               .eq('is_activated', true)
-              .order('created_at', {});
-          if (rows != null) {
-            final remote = (rows as List).map((a) => Agency(
-                  id: (a['id'] ?? '').toString(),
-                  name: a['name'] ?? a['agency_name'] ?? '',
-                  ownerId: (a['owner_id'] ?? '').toString(),
-                  description: a['description'] ?? '',
-                  agencyType: AgencyType.modife,
-                  isActivated: a['is_activated'] ?? true,
-                  photo: a['photo_url'],
-                  totalEarnings:
-                      (a['total_earnings'] as num?)?.toDouble() ?? 0,
-                )).toList();
-            // Merge: prefer remote agencies, but also keep local ones.
-            final remoteIds = remote.map((x) => x.id).toSet();
-            _agencies = [
-              ..._agencies.where((x) => !remoteIds.contains(x.id)),
-              ...remote,
-            ];
-          }
+              .order('created_at', ascending: false);
+          final remote = (rows as List).map((a) => Agency(
+                id: (a['id'] ?? '').toString(),
+                name: a['name'] ?? a['agency_name'] ?? '',
+                ownerId: (a['owner_id'] ?? '').toString(),
+                description: a['description'] ?? '',
+                agencyType: AgencyType.modife,
+                isActivated: a['is_activated'] ?? true,
+                photo: a['photo_url'],
+                totalEarnings:
+                    (a['total_earnings'] as num?)?.toDouble() ?? 0,
+              )).toList();
+          // Merge: prefer remote agencies, but also keep local ones.
+          final remoteIds = remote.map((x) => x.id).toSet();
+          _agencies = [
+            ..._agencies.where((x) => !remoteIds.contains(x.id)),
+            ...remote,
+          ];
         } catch (err) {
           debugPrint('Error fetching agencies from Supabase: $err');
         }
