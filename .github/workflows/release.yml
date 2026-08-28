@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,4 +63,4 @@ jobs:
           name: latest-apk
           tag_name: latest-apk
           fail_on_unmatched_files: false
-          overwrite: true
+          overwrite_files: true
