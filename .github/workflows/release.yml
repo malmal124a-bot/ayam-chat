@@ -52,3 +52,13 @@ jobs:
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Publish APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          generate_release_notes: false
+          name: latest-apk
+          tag_name: latest-apk
+          fail_on_unmatched_files: false
+          overwrite: true
