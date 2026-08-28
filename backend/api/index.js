@@ -17,6 +17,37 @@ const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     })
   : null;
 
+// Auto-create the agency_open_requests table (and index) if it doesn't exist.
+// Uses supabase.sql() (PostgREST SQL endpoint) which requires the service role.
+const OPEN_REQUESTS_DDL = `
+CREATE TABLE IF NOT EXISTS agency_open_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  requested_by text NOT NULL,
+  agency_name text NOT NULL,
+  phone text DEFAULT '',
+  agency_id text DEFAULT '',
+  photo_url text DEFAULT '',
+  id_card_url text DEFAULT '',
+  agency_type text DEFAULT 'hosting',
+  status text NOT NULL DEFAULT 'pending',
+  note text DEFAULT '',
+  reviewed_by text,
+  reviewed_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_agency_open_requests_user_pending
+  ON agency_open_requests (requested_by) WHERE status = 'pending';
+`;
+async function ensureOpenRequestsTable() {
+  if (!supabase || typeof supabase.sql !== 'function') return;
+  try { await supabase.sql(OPEN_REQUESTS_DDL); } catch (_) {}
+}
+const ensureOpenRequestsTableBefore = (handler) => async (req, res) => {
+  try { await ensureOpenRequestsTable(); } catch (_) {}
+  return handler(req, res);
+};
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', supabase: supabase ? 'connected' : 'missing_config' });
 });
@@ -436,6 +467,7 @@ app.post('/api/admin/open-agency', async (req, res) => {
 app.get('/api/admin/open-requests', async (req, res) => {
   try {
     if (!adminAuth(req, res)) return res.json({ ok: false, error: 'Forbidden' });
+    await ensureOpenRequestsTable();
     const status = (req.query.status || 'pending').toString();
     const { data, error } = await supabase
       .from('agency_open_requests')
@@ -460,6 +492,7 @@ app.get('/api/admin/open-requests', async (req, res) => {
 app.post('/api/admin/open-request/approve', async (req, res) => {
   try {
     if (!adminAuth(req, res)) return res.json({ ok: false, error: 'Forbidden' });
+    await ensureOpenRequestsTable();
     const { request_id } = req.body;
     if (!request_id) return res.json({ ok: false, error: 'request_id required' });
 
@@ -565,6 +598,7 @@ app.post('/api/admin/open-request/approve', async (req, res) => {
 app.post('/api/admin/open-request/reject', async (req, res) => {
   try {
     if (!adminAuth(req, res)) return res.json({ ok: false, error: 'Forbidden' });
+    await ensureOpenRequestsTable();
     const { request_id, note } = req.body;
     if (!request_id) return res.json({ ok: false, error: 'request_id required' });
 

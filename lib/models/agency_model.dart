@@ -109,6 +109,7 @@ class Agency {
   final double rating;
   final String? personalName;
   final String? nationalId;
+  final String? photo;
   List<String> paymentMethods;
   Map<String, int> chargingPackages;
   List<Transaction> chargingLogs;
@@ -125,6 +126,7 @@ class Agency {
     this.rating = 5.0,
     this.personalName,
     this.nationalId,
+    this.photo,
     List<String>? paymentMethods,
     Map<String, int>? chargingPackages,
     List<Transaction>? chargingLogs,
@@ -155,6 +157,7 @@ class Agency {
     'rating': rating,
     'personalName': personalName,
     'nationalId': nationalId,
+    'photo': photo,
     'paymentMethods': paymentMethods,
     'chargingPackages': chargingPackages,
     'chargingLogs': chargingLogs.map((t) => t.toJson()).toList(),
@@ -175,6 +178,7 @@ class Agency {
     rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
     personalName: json['personalName'],
     nationalId: json['nationalId'],
+    photo: json['photo'],
     paymentMethods: (json['paymentMethods'] as List?)?.cast<String>() ?? [],
     chargingPackages: (json['chargingPackages'] as Map<String, dynamic>?)?.map(
       (key, value) => MapEntry(key, value as int),

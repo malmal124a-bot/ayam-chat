@@ -11,6 +11,32 @@ module.exports = function createAgencyRoutes(supabase, authMiddleware) {
   // ─── ALL ROUTES REQUIRE AUTH ───
   router.use(authMiddleware);
 
+  // Auto-create agency_open_requests table if missing (for open-request flow).
+  const OPEN_REQUESTS_DDL = `
+CREATE TABLE IF NOT EXISTS agency_open_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  requested_by text NOT NULL,
+  agency_name text NOT NULL,
+  phone text DEFAULT '',
+  agency_id text DEFAULT '',
+  photo_url text DEFAULT '',
+  id_card_url text DEFAULT '',
+  agency_type text DEFAULT 'hosting',
+  status text NOT NULL DEFAULT 'pending',
+  note text DEFAULT '',
+  reviewed_by text,
+  reviewed_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_agency_open_requests_user_pending
+  ON agency_open_requests (requested_by) WHERE status = 'pending';
+`;
+  async function ensureOpenRequestsTable() {
+    if (!supabase || typeof supabase.sql !== 'function') return;
+    try { await supabase.sql(OPEN_REQUESTS_DDL); } catch (_) {}
+  }
+
   // ─── GET /api/agency/wallet?agency_id=XXXX ───
   // Get agency wallet balance
   router.get('/wallet', async (req, res) => {
@@ -875,6 +901,7 @@ module.exports = function createAgencyRoutes(supabase, authMiddleware) {
   router.post('/open-request', async (req, res) => {
     try {
       const agent_uid = req.user.sub;
+      await ensureOpenRequestsTable();
       const { agency_name, phone, agency_id, photo_url, id_card_url } = req.body;
       if (!agency_name || !agency_id) {
         return res.json({ ok: false, error: 'agency_name and agency_id required' });
@@ -926,6 +953,7 @@ module.exports = function createAgencyRoutes(supabase, authMiddleware) {
   router.get('/my-open-request', async (req, res) => {
     try {
       const agent_uid = req.user.sub;
+      await ensureOpenRequestsTable();
       const { data, error } = await supabase
         .from('agency_open_requests')
         .select('*')

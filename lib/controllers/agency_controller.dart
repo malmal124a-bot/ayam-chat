@@ -5,6 +5,7 @@ import 'package:ayam_chat/models/agency_request.dart';
 import 'package:ayam_chat/repositories/agency_repository.dart';
 import 'package:ayam_chat/repositories/local_agency_repository.dart';
 import 'package:ayam_chat/services/agency_api_service.dart';
+import 'package:ayam_chat/services/supabase_service.dart';
 import 'package:ayam_chat/controllers/user_controller.dart';
 import 'package:ayam_chat/controllers/wallet_controller.dart';
 import '../models/transaction_model.dart';
@@ -301,6 +302,36 @@ class AgencyController extends ChangeNotifier {
       _agencies = await _repository.getAgencies();
       final user = UserController();
       if (user.isOnline) {
+        // Pull all activated (open) agencies from Supabase so newly-opened
+        // agencies across the system actually show up for users to join.
+        try {
+          final rows = await SupabaseService.client
+              .from('agencies')
+              .select('*')
+              .eq('is_activated', true)
+              .order('created_at', {});
+          if (rows != null) {
+            final remote = (rows as List).map((a) => Agency(
+                  id: (a['id'] ?? '').toString(),
+                  name: a['name'] ?? a['agency_name'] ?? '',
+                  ownerId: (a['owner_id'] ?? '').toString(),
+                  description: a['description'] ?? '',
+                  agencyType: AgencyType.modife,
+                  isActivated: a['is_activated'] ?? true,
+                  photo: a['photo_url'],
+                  totalEarnings:
+                      (a['total_earnings'] as num?)?.toDouble() ?? 0,
+                )).toList();
+            // Merge: prefer remote agencies, but also keep local ones.
+            final remoteIds = remote.map((x) => x.id).toSet();
+            _agencies = [
+              ..._agencies.where((x) => !remoteIds.contains(x.id)),
+              ...remote,
+            ];
+          }
+        } catch (err) {
+          debugPrint('Error fetching agencies from Supabase: $err');
+        }
         // Try Supabase first
         try {
           final agencyData = await AgencyApiService().getMyAgency(user.id);
