@@ -19,6 +19,8 @@ class HostAgencyController extends ChangeNotifier {
   Map<String, dynamic>? _wallet;
   Map<String, dynamic>? _selectedMemberDetail;
   Map<String, dynamic>? _openRequest; // agency_open_requests row
+  List<Map<String, dynamic>> _openAgencies = []; // browseable open agencies
+  List<String> _requestedAgencyIds = []; // agency ids the user already requested
   bool _isLoading = false;
   String? _errorMessage;
   bool _agencyDeleted = false;
@@ -41,6 +43,9 @@ class HostAgencyController extends ChangeNotifier {
       _openRequest != null && (_openRequest!['status'] == 'approved');
   bool get openRequestRejected =>
       _openRequest != null && (_openRequest!['status'] == 'rejected');
+  List<Map<String, dynamic>> get openAgencies => _openAgencies;
+  List<String> get requestedAgencyIds => _requestedAgencyIds;
+  bool hasRequestedAgency(String agencyId) => _requestedAgencyIds.contains(agencyId);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get agencyDeleted => _agencyDeleted;
@@ -257,6 +262,8 @@ class HostAgencyController extends ChangeNotifier {
         } catch (e) {
           _openRequest = null;
         }
+        // Also load the list of open agencies the user can browse & join.
+        await _fetchOpenAgencies();
       } else {
         _openRequest = null;
       }
@@ -268,6 +275,53 @@ class HostAgencyController extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _fetchOpenAgencies() async {
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) return;
+
+      final data = await _client
+          .from('agencies')
+          .select('id, name, photo_url, description, owner_id, agency_type, created_at')
+          .eq('is_activated', true)
+          .eq('agency_type', 'hosting')
+          .neq('owner_id', uid)
+          .order('created_at', ascending: false)
+          .limit(50);
+
+      _openAgencies = List<Map<String, dynamic>>.from(data as List);
+
+      // Mark which agencies the user already requested to join
+      final requested = await _client
+          .from('host_agency_join_requests')
+          .select('agency_id')
+          .eq('user_id', uid)
+          .inFilter('status', ['pending', 'invited']);
+      _requestedAgencyIds =
+          (requested as List).map((r) => (r['agency_id'] ?? '').toString()).toList();
+    } catch (e) {
+      debugPrint('HostAgencyController: fetchOpenAgencies error: $e');
+    }
+    notifyListeners();
+  }
+
+  /// Public refresh for the open-agencies browse list.
+  Future<void> refreshOpenAgencies() => _fetchOpenAgencies();
+
+  /// Request to join a hosting agency. Returns an error string, or null on success.
+  Future<String?> requestJoinAgency(String agencyId) async {
+    try {
+      await AgencyApiService().requestJoin(agencyId: agencyId);
+      if (!_requestedAgencyIds.contains(agencyId)) {
+        _requestedAgencyIds.add(agencyId);
+      }
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return e.toString().replaceFirst('Exception: ', '');
     }
   }
 

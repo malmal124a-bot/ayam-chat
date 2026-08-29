@@ -220,7 +220,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   label: const Text('دخول لوحة الوكالة',
                       style: TextStyle(color: Colors.white)),
                 )
-              else if (!rejected)
+              else if (!rejected) ...[
                 ElevatedButton.icon(
                   onPressed: () async {
                     final created = await Navigator.of(context).push<bool>(
@@ -238,7 +238,10 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                           color: theme.colorScheme.onSecondary,
                           fontSize: 16,
                           fontWeight: FontWeight.bold)),
-                )
+                ),
+                const SizedBox(height: 28),
+                _buildOpenAgenciesList(theme, controller),
+              ]
               else
                 ElevatedButton.icon(
                   onPressed: () => controller.refresh(),
@@ -252,6 +255,125 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOpenAgenciesList(ThemeData theme, HostAgencyController controller) {
+    final agencies = controller.openAgencies;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.explore_outlined,
+                size: 18, color: theme.colorScheme.secondary),
+            const SizedBox(width: 8),
+            Text('الوكالات المفتوحة على النظام',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold)),
+            const Spacer(),
+            IconButton(
+              icon: Icon(Icons.refresh, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              onPressed: () => controller.refreshOpenAgencies(),
+              tooltip: 'تحديث',
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (agencies.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text('لا توجد وكالات مفتوحة حالياً',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    fontSize: 13)),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: agencies.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final a = agencies[index];
+              final id = (a['id'] ?? '').toString();
+              final name = (a['name'] ?? 'وكالة').toString();
+              final desc = (a['description'] ?? '').toString();
+              final photo = (a['photo_url'] ?? '').toString();
+              final requested = controller.hasRequestedAgency(id);
+              return Container(
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: theme.colorScheme.secondary.withValues(alpha: 0.15)),
+                ),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
+                    child: photo.isEmpty
+                        ? Icon(Icons.business, color: theme.colorScheme.secondary)
+                        : null,
+                  ),
+                  title: Text(name,
+                      style: TextStyle(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.bold)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (desc.isNotEmpty)
+                        Text(desc,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.5),
+                                fontSize: 12)),
+                    ],
+                  ),
+                  trailing: requested
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text('طلبك قيد المراجعة',
+                              style: TextStyle(
+                                  color: Colors.amber.shade800, fontSize: 11)),
+                        )
+                      : ElevatedButton(
+                          onPressed: () async {
+                            final err =
+                                await controller.requestJoinAgency(id);
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(err ?? 'تم إرسال طلب الانضمام بنجاح'),
+                                backgroundColor:
+                                    err == null ? Colors.green : Colors.red,
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.secondary,
+                            minimumSize: const Size(72, 36),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          child: Text('انضمام',
+                              style: TextStyle(
+                                  color: theme.colorScheme.onSecondary,
+                                  fontSize: 13)),
+                        ),
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 

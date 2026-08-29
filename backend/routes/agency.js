@@ -966,5 +966,71 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_agency_open_requests_user_pending
     } catch (e) { res.json({ ok: false, error: e.message }); }
   });
 
+  // ─── REQUEST TO JOIN (user-initiated) ───────────
+
+  // POST /api/agency/request-join — a user requests to join a hosting agency
+  router.post('/request-join', async (req, res) => {
+    try {
+      const { agency_id, message } = req.body;
+      const user_uid = req.user.sub;
+      if (!agency_id) {
+        return res.json({ ok: false, error: 'agency_id required' });
+      }
+
+      // 1. Agency must exist and be activated
+      const { data: agency, error: aErr } = await supabase
+        .from('agencies')
+        .select('id, is_activated, agency_type, owner_id')
+        .eq('id', agency_id)
+        .maybeSingle();
+      if (aErr || !agency) {
+        return res.json({ ok: false, error: 'الوكالة غير موجودة' });
+      }
+      if (agency.is_activated !== true) {
+        return res.json({ ok: false, error: 'الوكالة غير متاحة حالياً' });
+      }
+      if (agency.owner_id === user_uid) {
+        return res.json({ ok: false, error: 'لا يمكنك الانضمام إلى وكالتك الخاصة' });
+      }
+
+      // 2. Not already a member
+      const { data: existingMember } = await supabase
+        .from('host_agency_members')
+        .select('id')
+        .eq('agency_id', agency_id)
+        .eq('user_id', user_uid)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (existingMember) {
+        return res.json({ ok: false, error: 'أنت عضو بالفعل في هذه الوكالة' });
+      }
+
+      // 3. Not already have pending/invited request
+      const { data: existing } = await supabase
+        .from('host_agency_join_requests')
+        .select('id')
+        .eq('agency_id', agency_id)
+        .eq('user_id', user_uid)
+        .in('status', ['pending', 'invited'])
+        .maybeSingle();
+      if (existing) {
+        return res.json({ ok: false, error: 'لديك طلب قيد المراجعة بالفعل' });
+      }
+
+      // 4. Insert request
+      const { error: insErr } = await supabase
+        .from('host_agency_join_requests')
+        .insert({
+          agency_id,
+          user_id: user_uid,
+          status: 'pending',
+          message: message || '',
+        });
+      if (insErr) throw insErr;
+
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
   return router;
 };

@@ -263,4 +263,16 @@ class AgencyApiService {
       return null;
     }
   }
+
+  /// Request to join a hosting agency (user-initiated). Returns a list of the
+  /// user's already-requested agency ids so the UI can disable the button.
+  Future<Map<String, dynamic>> requestJoin({
+    required String agencyId,
+    String message = '',
+  }) async {
+    return _post('/request-join', body: {
+      'agency_id': agencyId,
+      'message': message,
+    });
+  }
 }
