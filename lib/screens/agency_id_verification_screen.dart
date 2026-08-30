@@ -75,7 +75,11 @@ class _AgencyIdVerificationScreenState extends State<AgencyIdVerificationScreen>
   }
 
   void _next() {
-    if (_formKey.currentState!.validate() && _frontImageUrl != null && _backImageUrl != null) {
+    final formOk = _formKey.currentState!.validate();
+    final frontOk = _frontImageUrl != null;
+    final backOk = _backImageUrl != null;
+
+    if (formOk && frontOk && backOk) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -90,11 +94,17 @@ class _AgencyIdVerificationScreenState extends State<AgencyIdVerificationScreen>
           ),
         ),
       );
-    } else if (_frontImageUrl == null || _backImageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء رفع صور البطاقة (وجه وضهر)')),
-      );
+      return;
     }
+
+    String message = 'أكمل البيانات التالية لتفعيل زر التالي:';
+    if (!formOk) message += '\n• أدخل الاسم الكامل ورقم الهاتف والبريد الإلكتروني';
+    if (!frontOk) message += '\n• ارفع صورة وجه البطاقة';
+    if (!backOk) message += '\n• ارفع صورة ظهر البطاقة';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
