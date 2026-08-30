@@ -275,4 +275,80 @@ class AgencyApiService {
       'message': message,
     });
   }
+
+  // ════════════════════════════════════════════════════════════
+  // HOST EARNINGS / WITHDRAW / LEAVE / TRANSFER
+  // ════════════════════════════════════════════════════════════
+
+  /// Host submits a salary-withdrawal request for their current balance.
+  Future<Map<String, dynamic>> requestWithdrawal() async {
+    return _post('/withdraw-request');
+  }
+
+  /// Agent/owner lists withdrawal requests for an agency.
+  Future<List<dynamic>> getWithdrawalRequests(String agencyId, {String? status}) async {
+    final map = <String, String>{'agency_id': agencyId};
+    if (status != null) map['status'] = status;
+    return _get('/withdraw-requests', queryParams: map) as List<dynamic>? ?? [];
+  }
+
+  /// Agent/owner approves a withdrawal request.
+  Future<Map<String, dynamic>> approveWithdrawal(String requestId) async {
+    return _post('/withdraw-approve', body: {'request_id': requestId});
+  }
+
+  /// Agent/owner rejects a withdrawal request.
+  Future<Map<String, dynamic>> rejectWithdrawal(String requestId, {String note = ''}) async {
+    return _post('/withdraw-reject', body: {'request_id': requestId, 'note': note});
+  }
+
+  /// Agent uploads proof screenshot => marks PAID + resets member balance.
+  Future<Map<String, dynamic>> submitWithdrawProof(String requestId, String proofUrl) async {
+    return _post('/withdraw-submit-proof', body: {'request_id': requestId, 'proof_url': proofUrl});
+  }
+
+  /// Host requests to leave the agency (agent must approve).
+  Future<Map<String, dynamic>> requestLeave() async {
+    return _post('/leave-request');
+  }
+
+  /// Agent lists leave requests for an agency.
+  Future<List<dynamic>> getLeaveRequests(String agencyId, {String? status}) async {
+    final map = <String, String>{'agency_id': agencyId};
+    if (status != null) map['status'] = status;
+    return _get('/leave-requests', queryParams: map) as List<dynamic>? ?? [];
+  }
+
+  /// Agent approves/rejects a leave request.
+  Future<Map<String, dynamic>> respondLeave(String requestId, {required bool approve, String note = ''}) async {
+    return _post('/leave-respond', body: {'request_id': requestId, 'approve': approve, 'note': note});
+  }
+
+  /// Host sets their shipping agent by numeric id.
+  Future<Map<String, dynamic>> setShippingAgent(String shippingNumericId) async {
+    return _post('/transfer-set-agent', body: {'shipping_numeric_id': shippingNumericId});
+  }
+
+  /// Host requests a transfer of `amount` to their shipping agent.
+  Future<Map<String, dynamic>> requestTransfer(int amount) async {
+    return _post('/transfer-request', body: {'amount': amount});
+  }
+
+  /// Lists transfer requests addressed to a given user (shipping agent).
+  Future<List<dynamic>> getTransferRequests({String? forUserId, String? status}) async {
+    final map = <String, String>{};
+    if (forUserId != null) map['for_user_id'] = forUserId;
+    if (status != null) map['status'] = status;
+    return _get('/transfer-requests', queryParams: map) as List<dynamic>? ?? [];
+  }
+
+  /// Shipping agent approves/rejects a transfer.
+  Future<Map<String, dynamic>> respondTransfer(String requestId, {required bool approve, String note = ''}) async {
+    return _post('/transfer-respond', body: {'request_id': requestId, 'approve': approve, 'note': note});
+  }
+
+  /// Shipping agent marks a transfer paid + uploads proof.
+  Future<Map<String, dynamic>> submitTransferProof(String requestId, String proofUrl) async {
+    return _post('/transfer-submit-proof', body: {'request_id': requestId, 'proof_url': proofUrl});
+  }
 }

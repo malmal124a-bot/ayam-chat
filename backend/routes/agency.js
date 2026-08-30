@@ -1032,5 +1032,413 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_agency_open_requests_user_pending
     } catch (e) { res.json({ ok: false, error: e.message }); }
   });
 
+  // ══════════════════════════════════════════════════════════════════
+  // HOST EARNINGS / LEVEL / WITHDRAW-REQUEST / LEAVE / TRANSFER FLOWS
+  // All routes require JWT auth (router.use(authMiddleware) above).
+  // ══════════════════════════════════════════════════════════════════
+
+  // Fetch the member row + agency for the calling user (vNext helpers)
+  async function findMemberOf(uid) {
+    let { data: mem } = await supabase
+      .from('host_agency_members')
+      .select('*')
+      .eq('user_id', uid)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (!mem) throw new Error('You are not an active host in any agency');
+    const { data: agency } = await supabase.from('agencies').select('*').eq('id', mem.agency_id).maybeSingle();
+
+    // Weekly carry-over: if the current period ended AND the member has NOT
+    // withdrawn (balance > 0), carry the balance forward into the next period
+    // instead of resetting. If balance == 0, simply start a fresh period.
+    try {
+      const now = new Date();
+      let changed = false;
+      const pt = mem.period_type || 'weekly';
+      if (pt === 'weekly' && mem.period_end && new Date(mem.period_end).getTime() < now.getTime()) {
+        const nextStart = new Date(now);
+        const nextEnd = new Date(now);
+        nextEnd.setDate(nextEnd.getDate() + 7);
+        const patch = { period_start: nextStart.toISOString(), period_end: nextEnd.toISOString() };
+        if ((mem.diamonds_balance ?? 0) > 0) {
+          // carry balance forward (no reset)
+        } else {
+          patch.diamonds_balance = 0;
+        }
+        await supabase.from('host_agency_members').update(patch).eq('agency_id', mem.agency_id).eq('user_id', uid);
+        mem = { ...mem, ...patch };
+        changed = true;
+      }
+    } catch (_) {}
+    return { mem, agency };
+  }
+
+  // Resolve the next level target from host_profit_levels based on cumulative earnings.
+  async function resolveLevel(currentCumulative) {
+    const { data: levels } = await supabase
+      .from('host_profit_levels')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    if (!levels || levels.length === 0) return { level: 0, target: 5000, periodType: 'weekly', profitPercent: 10 };
+    let lvl = 0, tgt = levels[levels.length - 1].target || 5000, pt = 'weekly', pp = 10;
+    for (const l of levels) {
+      const min = (l.min_cumulative_coins ?? 0);
+      if (currentCumulative >= min) {
+        lvl = l.sort_order || lvl + 1;
+        tgt = l.target ?? lvl * 5000;
+        pt = l.period_type || 'weekly';
+        pp = l.profit_percent ?? 10;
+      }
+    }
+    return { level: lvl, target: tgt, periodType: pt, profitPercent: pp };
+  }
+
+  // ─── POST /api/agency/withdraw-request ───
+  // Host requests to withdraw their current earnings balance.
+  router.post('/withdraw-request', async (req, res) => {
+    try {
+      const { uid } = { uid: req.user.sub };
+      const { mem, agency } = await findMemberOf(uid);
+      const balance = (mem.diamonds_balance ?? 0);
+      if (balance <= 0) return res.json({ ok: false, error: 'لا يوجد رصيد قابل للسحب' });
+
+      // If there is already a pending request, block duplicate.
+      const { data: pending } = await supabase
+        .from('agency_withdrawal_requests')
+        .select('id')
+        .eq('member_user_id', uid)
+        .eq('status', 'pending')
+        .maybeSingle();
+      if (pending) return res.json({ ok: false, error: 'لديك طلب سحب قيد المراجعة بالفعل', request_id: pending.id });
+
+      // Member identity for the dashboard display
+      const { data: user } = await supabase.from('users').select('name, numeric_id, photo_url').eq('auth_uid', uid).maybeSingle();
+
+      const { data, error } = await supabase.from('agency_withdrawal_requests').insert({
+        agency_id: mem.agency_id,
+        member_user_id: uid,
+        amount: balance,
+        status: 'pending',
+        member_name: user?.name || mem.numeric_id || '',
+        member_numeric_id: user?.numeric_id || '',
+        member_photo_url: user?.photo_url || '',
+        agency_name: agency?.name || '',
+      }).select().single();
+      if (error) throw error;
+
+      res.json({ ok: true, request: data });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── GET /api/agency/withdraw-requests?agency_id=XXXX&status= ───
+  router.get('/withdraw-requests', async (req, res) => {
+    try {
+      const { agency_id, status } = req.query;
+      let q = supabase.from('agency_withdrawal_requests').select('*').order('created_at', { ascending: false });
+      if (agency_id) q = q.eq('agency_id', agency_id);
+      if (status) q = q.eq('status', status);
+      const { data, error } = await q;
+      if (error) throw error;
+      res.json(data || []);
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/withdraw-approve ───
+  // Agent/owner approves the request (member sees it approved; proof comes next).
+  router.post('/withdraw-approve', async (req, res) => {
+    try {
+      const { request_id } = req.body;
+      if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+      const { data, error } = await supabase
+        .from('agency_withdrawal_requests')
+        .update({ status: 'approved', reviewed_by: req.user.sub, approved_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('id', request_id).eq('status', 'pending')
+        .select().single();
+      if (error) throw error;
+      if (!data) return res.json({ ok: false, error: 'الطلب غير موجود أو تمت معالجته' });
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/withdraw-reject ───
+  router.post('/withdraw-reject', async (req, res) => {
+    try {
+      const { request_id, note } = req.body;
+      if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+      const { data, error } = await supabase
+        .from('agency_withdrawal_requests')
+        .update({ status: 'rejected', note: note || '', reviewed_by: req.user.sub, updated_at: new Date().toISOString() })
+        .eq('id', request_id).eq('status', 'pending')
+        .select().single();
+      if (error) throw error;
+      if (!data) return res.json({ ok: false, error: 'الطلب غير موجود أو تمت معالجته' });
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/withdraw-submit-proof ───
+  // Agent uploads a transfer screenshot; marks PAID; resets member balance &
+  // applies the level-reset rule; notifies the member.
+  router.post('/withdraw-submit-proof', async (req, res) => {
+    try {
+      const { request_id, proof_url } = req.body;
+      if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+      if (!proof_url) return res.json({ ok: false, error: 'proof_url required' });
+
+      const { data: reqRow, error: rErr } = await supabase
+        .from('agency_withdrawal_requests').select('*').eq('id', request_id).single();
+      if (rErr || !reqRow) return res.json({ ok: false, error: 'طلب غير موجود' });
+      if (reqRow.status === 'paid') return res.json({ ok: false, error: 'تم دفع هذا الطلب مسبقاً' });
+
+      // Mark paid + save proof
+      const { error: upErr } = await supabase
+        .from('agency_withdrawal_requests')
+        .update({ status: 'paid', proof_url, reviewed_by: req.user.sub, updated_at: new Date().toISOString() })
+        .eq('id', request_id);
+      if (upErr) throw upErr;
+
+      // Reset member earnings (تصفير بعد السحب مباشرة بدون ترحيل)
+      const { data: mem } = await supabase.from('host_agency_members')
+        .select('*').eq('agency_id', reqRow.agency_id).eq('user_id', reqRow.member_user_id).maybeSingle();
+      if (mem) {
+        const lvl = await resolveLevel(mem.diamonds_earned_cumulative ?? 0);
+        await supabase.from('host_agency_members').update({
+          diamonds_balance: 0,
+          diamonds_earned_cumulative: 0,           // start fresh for the next level cycle
+          diamonds_earned_monthly: 0,
+          level: 0,
+          target: lvl.target,
+          period_type: lvl.periodType,
+        }).eq('agency_id', reqRow.agency_id).eq('user_id', reqRow.member_user_id);
+      }
+
+      // DM notification: salary sent successfully
+      const toNumeric = reqRow.member_numeric_id || '';
+      try {
+        if (toNumeric) {
+          await supabase.from('dm_messages').insert({
+            from_user_id: 'system',
+            to_user_id: toNumeric,
+            from_name: 'النظام',
+            to_name: reqRow.member_name || toNumeric,
+            text: `✅ تم إرسال الراتب إليك بنجاح (${reqRow.amount} ماس) من الوكالة "${reqRow.agency_name}".`,
+            is_read: false,
+          });
+        }
+      } catch (_) {}
+
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/leave-request ───
+  // Host requests to leave; the agent must approve/reject.
+  router.post('/leave-request', async (req, res) => {
+    try {
+      const uid = req.user.sub;
+      const { mem, agency } = await findMemberOf(uid);
+      const { data: pending } = await supabase
+        .from('agency_leave_requests').select('id').eq('member_user_id', uid).eq('status', 'pending').maybeSingle();
+      if (pending) return res.json({ ok: false, error: 'لديك طلب خروج قيد المراجعة بالفعل' });
+
+      const { data: user } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', uid).maybeSingle();
+      const { data, error } = await supabase.from('agency_leave_requests').insert({
+        agency_id: mem.agency_id,
+        member_user_id: uid,
+        status: 'pending',
+        member_name: user?.name || '',
+        member_numeric_id: user?.numeric_id || '',
+      }).select().single();
+      if (error) throw error;
+
+      // Notify the agency owner via DM
+      const toNumeric = agency?.owner_id ? (await supabase.from('users').select('numeric_id').eq('auth_uid', agency.owner_id).maybeSingle())?.data?.numeric_id : null;
+      if (toNumeric) {
+        await supabase.from('dm_messages').insert({
+          from_user_id: uid, to_user_id: toNumeric, from_name: user?.name || 'عضو',
+          to_name: '', text: `📤 طلب انسحاب جديد من العضو (${user?.name || ''}) في وكالة ${agency?.name || ''}.`, is_read: false,
+        }).catch(() => {});
+      }
+
+      res.json({ ok: true, request: data });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── GET /api/agency/leave-requests?agency_id=XXXX&status= ───
+  router.get('/leave-requests', async (req, res) => {
+    try {
+      const { agency_id, status } = req.query;
+      let q = supabase.from('agency_leave_requests').select('*').order('created_at', { ascending: false });
+      if (agency_id) q = q.eq('agency_id', agency_id);
+      if (status) q = q.eq('status', status);
+      const { data, error } = await q;
+      if (error) throw error;
+      res.json(data || []);
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/leave-respond ───
+  router.post('/leave-respond', async (req, res) => {
+    try {
+      const { request_id, approve, note } = req.body;
+      if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+      const { data: reqRow, error: rErr } = await supabase
+        .from('agency_leave_requests').select('*').eq('id', request_id).single();
+      if (rErr || !reqRow) return res.json({ ok: false, error: 'طلب غير موجود' });
+      if (reqRow.status !== 'pending') return res.json({ ok: false, error: 'تمت معالجة الطلب مسبقاً' });
+
+      if (approve) {
+        await supabase.from('host_agency_members').update({ status: 'left' })
+          .eq('agency_id', reqRow.agency_id).eq('user_id', reqRow.member_user_id);
+        await supabase.from('agency_leave_requests').update({ status: 'approved', note: note || '', updated_at: new Date().toISOString() }).eq('id', request_id);
+      } else {
+        await supabase.from('agency_leave_requests').update({ status: 'rejected', note: note || '', updated_at: new Date().toISOString() }).eq('id', request_id);
+      }
+
+      if (reqRow.member_numeric_id) {
+        await supabase.from('dm_messages').insert({
+          from_user_id: 'system', to_user_id: reqRow.member_numeric_id, from_name: 'النظام', to_name: reqRow.member_name || '',
+          text: approve ? '✅ تمت الموافقة على انسحابك من الوكالة.' : `تم رفض طلب الانسحاب.${note ? ' السبب: ' + note : ''}`,
+          is_read: false,
+        }).catch(() => {});
+      }
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/transfer-set-agent ───
+  // Host sets their shipping agent (numeric id). Shows up for later transfers.
+  router.post('/transfer-set-agent', async (req, res) => {
+    try {
+      const uid = req.user.sub;
+      const { shipping_numeric_id } = req.body;
+      if (!shipping_numeric_id) return res.json({ ok: false, error: 'shipping_numeric_id required' });
+      const { mem } = await findMemberOf(uid);
+      const { data: agentUser, error: aErr } = await supabase.from('users')
+        .select('auth_uid, name, numeric_id, is_agent').eq('numeric_id', String(shipping_numeric_id)).maybeSingle();
+      if (aErr || !agentUser) return res.json({ ok: false, error: 'المستخدم غير موجود بهذا الرقم' });
+      if (!agentUser.is_agent) return res.json({ ok: false, error: 'هذا المستخدم ليس وكيلاً' });
+
+      const { error } = await supabase.from('host_agency_members').update({
+        shipping_agent_id: agentUser.auth_uid,
+        shipping_agent_name: agentUser.name || agentUser.numeric_id,
+      }).eq('agency_id', mem.agency_id).eq('user_id', uid);
+      if (error) throw error;
+      res.json({ ok: true, agent: agentUser });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/transfer-request ───
+  // Host requests to move {amount} to their shipping agent.
+  router.post('/transfer-request', async (req, res) => {
+    try {
+      const uid = req.user.sub;
+      const { amount } = req.body;
+      const { mem, agency } = await findMemberOf(uid);
+      if (!amount || amount <= 0) return res.json({ ok: false, error: 'amount > 0 required' });
+      if ((mem.diamonds_balance ?? 0) < amount) return res.json({ ok: false, error: 'رصيد غير كافٍ' });
+      if (!mem.shipping_agent_id) return res.json({ ok: false, error: 'أضف وكيل الشحن أولاً' });
+
+      const { data: agentUser } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', mem.shipping_agent_id).maybeSingle();
+      const { data: fromUser } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', uid).maybeSingle();
+
+      const { data, error } = await supabase.from('agency_transfer_requests').insert({
+        agency_id: mem.agency_id,
+        from_user_id: uid,
+        from_name: fromUser?.name || '',
+        from_numeric_id: fromUser?.numeric_id || '',
+        to_user_id: mem.shipping_agent_id,
+        to_numeric_id: agentUser?.numeric_id || '',
+        to_name: agentUser?.name || '',
+        amount,
+        status: 'pending',
+      }).select().single();
+      if (error) throw error;
+
+      // Notify shipping agent
+      if (agentUser?.numeric_id) {
+        await supabase.from('dm_messages').insert({
+          from_user_id: uid, to_user_id: agentUser.numeric_id, from_name: fromUser?.name || 'عضو',
+          to_name: agentUser.name || '', text: `💰 طلب تحويل ${amount} ماس من العضو ${fromUser?.name || ''} (وكالة ${agency?.name || ''}).`, is_read: false,
+        }).catch(() => {});
+      }
+      res.json({ ok: true, request: data });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── GET /api/agency/transfer-requests?for_user_id=XXXX&status= ───
+  // Shipping agent lists transfers addressed to them.
+  router.get('/transfer-requests', async (req, res) => {
+    try {
+      const { for_user_id, agency_id, status } = req.query;
+      let q = supabase.from('agency_transfer_requests').select('*').order('created_at', { ascending: false });
+      if (for_user_id) q = q.eq('to_user_id', for_user_id);
+      if (agency_id) q = q.eq('agency_id', agency_id);
+      if (status) q = q.eq('status', status);
+      const { data, error } = await q;
+      if (error) throw error;
+      res.json(data || []);
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/transfer-respond ───
+  router.post('/transfer-respond', async (req, res) => {
+    try {
+      const { request_id, approve, note } = req.body;
+      if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+      const { data: reqRow, error: rErr } = await supabase
+        .from('agency_transfer_requests').select('*').eq('id', request_id).single();
+      if (rErr || !reqRow) return res.json({ ok: false, error: 'طلب غير موجود' });
+      if (reqRow.status !== 'pending') return res.json({ ok: false, error: 'تمت معالجة الطلب مسبقاً' });
+
+      if (approve) {
+        // Move amount out of member balance
+        const { data: mem } = await supabase.from('host_agency_members')
+          .select('*').eq('agency_id', reqRow.agency_id).eq('user_id', reqRow.from_user_id).maybeSingle();
+        if (!mem || (mem.diamonds_balance ?? 0) < reqRow.amount) {
+          return res.json({ ok: false, error: 'رصيد العضو غير كافٍ' });
+        }
+        await supabase.from('host_agency_members').update({ diamonds_balance: mem.diamonds_balance - reqRow.amount })
+          .eq('agency_id', reqRow.agency_id).eq('user_id', reqRow.from_user_id);
+        await supabase.from('agency_transfer_requests').update({ status: 'approved', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', request_id);
+      } else {
+        await supabase.from('agency_transfer_requests').update({ status: 'rejected', note: note || '', updated_at: new Date().toISOString() }).eq('id', request_id);
+      }
+
+      if (reqRow.from_numeric_id) {
+        await supabase.from('dm_messages').insert({
+          from_user_id: 'system', to_user_id: reqRow.from_numeric_id, from_name: 'النظام', to_name: reqRow.from_name || '',
+          text: approve ? `✅ تمت الموافقة على تحويل ${reqRow.amount} ماس إلى وكيل الشحن ${reqRow.to_name}.` : `تم رفض تحويل ${reqRow.amount} ماس.${note ? ' السبب: ' + note : ''}`,
+          is_read: false,
+        }).catch(() => {});
+      }
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
+  // ─── POST /api/agency/transfer-submit-proof ───
+  // Shipping agent marks the transfer as paid + uploads proof.
+  router.post('/transfer-submit-proof', async (req, res) => {
+    try {
+      const { request_id, proof_url } = req.body;
+      if (!request_id) return res.json({ ok: false, error: 'request_id required' });
+      const { data: reqRow, error: rErr } = await supabase
+        .from('agency_transfer_requests').select('*').eq('id', request_id).single();
+      if (rErr || !reqRow) return res.json({ ok: false, error: 'طلب غير موجود' });
+      if (reqRow.status === 'paid') return res.json({ ok: false, error: 'تم الدفع مسبقاً' });
+      if (reqRow.status === 'rejected') return res.json({ ok: false, error: 'الطلب مرفوض' });
+
+      await supabase.from('agency_transfer_requests').update({ status: 'paid', proof_url, updated_at: new Date().toISOString() }).eq('id', request_id);
+
+      if (reqRow.from_numeric_id) {
+        await supabase.from('dm_messages').insert({
+          from_user_id: 'system', to_user_id: reqRow.from_numeric_id, from_name: 'النظام', to_name: reqRow.from_name || '',
+          text: `✅ تم إرسال مبلغ التحويل (${reqRow.amount} ماس) إليك بنجاح من وكيل الشحن ${reqRow.to_name}.`, is_read: false,
+        }).catch(() => {});
+      }
+      res.json({ ok: true });
+    } catch (e) { res.json({ ok: false, error: e.message }); }
+  });
+
   return router;
 };

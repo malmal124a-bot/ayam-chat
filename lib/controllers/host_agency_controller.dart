@@ -58,6 +58,30 @@ class HostAgencyController extends ChangeNotifier {
   String get agencyType => _agency?['agency_type'] ?? 'mixed';
   bool get isOwner => _agency?['owner_id'] == _client.auth.currentUser?.id;
 
+  /// The current user's own membership row (owner or host) inside the agency.
+  Map<String, dynamic>? get currentMember {
+    final uid = _client.auth.currentUser?.id;
+    for (final m in _members) {
+      if (m['auth_uid'] == uid) return m;
+    }
+    return null;
+  }
+
+  /// Current user's withdrawable earnings balance.
+  int get myBalance => (currentMember?['balance'] as num?)?.toInt() ?? diamondsBalance;
+
+  /// Current user's target for the current level.
+  int get myTarget => (currentMember?['target'] as num?)?.toInt() ?? 5000;
+
+  /// Current user's level.
+  int get myLevel => (currentMember?['level'] as num?)?.toInt() ?? 1;
+
+  /// How much remains until the next level target is met.
+  int get myRemaining => (myTarget - myBalance) < 0 ? 0 : (myTarget - myBalance);
+
+  double get myProgress =>
+      myTarget <= 0 ? 0 : ((myBalance / myTarget).clamp(0.0, 1.0)).toDouble();
+
   HostAgencyController() {
     _loadData();
   }
@@ -188,6 +212,11 @@ class HostAgencyController extends ChangeNotifier {
             'role': m['role'] ?? 'host',
             'joined_at': m['joined_at'] ?? '',
             'trial_ends_at': m['trial_ends_at'],
+            'target': m['target'] ?? 5000,
+            'level': m['level'] ?? 1,
+            'period_type': m['period_type'] ?? 'weekly',
+            'shipping_agent_id': m['shipping_agent_id'],
+            'shipping_agent_name': m['shipping_agent_name'] ?? '',
           });
         }
 
@@ -198,22 +227,38 @@ class HostAgencyController extends ChangeNotifier {
           _wallet = {'diamonds_balance': 0, 'total_recharged': 0, 'total_withdrawn': 0};
         }
 
-        // Load join requests (pending + invited)
+        // Load join requests (pending + invited).
+        // NOTE: we intentionally do NOT rely on an embedded FK join to
+        // `users` (e.g. `users!host_agency_join_requests_user_id_fkey`)
+        // because that foreign key is dropped by the uuid->text migration
+        // and may not exist. Fetch member info separately instead.
         final requestsData = await _client
             .from('host_agency_join_requests')
-            .select('*, users:users!host_agency_join_requests_user_id_fkey(name, numeric_id, photo_url)')
+            .select('*')
             .eq('agency_id', agencyId)
             .inFilter('status', ['pending', 'invited']);
 
-        _joinRequests = (requestsData as List).map((r) {
-          final user = r['users'] as Map<String, dynamic>?;
-          return {
+        final List<Map<String, dynamic>> enrichedRequests = [];
+        for (final r in (requestsData as List)) {
+          final userId = (r['user_id'] ?? '').toString();
+          Map<String, dynamic>? userData;
+          if (userId.isNotEmpty) {
+            try {
+              userData = await _client
+                  .from('users')
+                  .select('name, numeric_id, photo_url')
+                  .eq('auth_uid', userId)
+                  .maybeSingle();
+            } catch (_) {}
+          }
+          enrichedRequests.add({
             ...r as Map<String, dynamic>,
-            'user_name': user?['name'] ?? 'مستخدم',
-            'user_numeric_id': user?['numeric_id'] ?? '',
-            'user_photo': user?['photo_url'] ?? '',
-          };
-        }).toList();
+            'user_name': userData?['name'] ?? 'مستخدم',
+            'user_numeric_id': userData?['numeric_id'] ?? '',
+            'user_photo': userData?['photo_url'] ?? '',
+          });
+        }
+        _joinRequests = enrichedRequests;
 
         // Load recharge logs
         final rechargesData = await _client
@@ -269,6 +314,11 @@ class HostAgencyController extends ChangeNotifier {
       }
 
       _subscribeToAgencyChanges();
+
+      // Owner loads pending withdrawal + leave requests for approval.
+      if (_agency != null && isOwner) {
+        await loadAgencyRequests();
+      }
     } catch (e) {
       _errorMessage = e.toString();
       debugPrint('HostAgencyController: load error: $e');
@@ -570,6 +620,140 @@ class HostAgencyController extends ChangeNotifier {
     } catch (e) {
       return {'ok': false, 'message': 'حدث خطأ: $e'};
     }
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // EARNINGS / LEVEL / WITHDRAW / LEAVE / TRANSFER
+  // ════════════════════════════════════════════════════════════
+
+  List<Map<String, dynamic>> _withdrawRequests = [];
+  List<Map<String, dynamic>> _leaveRequests = [];
+  List<Map<String, dynamic>> _transferRequests = [];
+
+  List<Map<String, dynamic>> get withdrawRequests => _withdrawRequests;
+  List<Map<String, dynamic>> get leaveRequests => _leaveRequests;
+  List<Map<String, dynamic>> get transferRequests => _transferRequests;
+
+  String? get shippingAgentId => _members
+      .where((m) => m['auth_uid'] == _client.auth.currentUser?.id)
+      .map((m) => m['shipping_agent_id']?.toString())
+      .firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
+
+  /// Member requests to withdraw their current earnings balance.
+  Future<Map<String, dynamic>> requestSalaryWithdrawal() async {
+    try {
+      final result = await AgencyApiService().requestWithdrawal();
+      await _loadData();
+      return {'ok': result['ok'] == true, 'message': result['error'] ?? 'تم إرسال طلب السحب، بانتظار موافقة الوكيل'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Agent/owner: loads pending withdrawal + leave requests for the agency.
+  Future<void> loadAgencyRequests() async {
+    final agencyId = _agency?['id'] as String?;
+    if (agencyId == null) return;
+    try {
+      _withdrawRequests = await AgencyApiService().getWithdrawalRequests(agencyId);
+    } catch (_) { _withdrawRequests = []; }
+    try {
+      _leaveRequests = await AgencyApiService().getLeaveRequests(agencyId);
+    } catch (_) { _leaveRequests = []; }
+    notifyListeners();
+  }
+
+  /// Agent/owner: approve a member's salary-withdrawal request.
+  Future<Map<String, dynamic>> approveWithdrawal(String requestId) async {
+    try {
+      final result = await AgencyApiService().approveWithdrawal(requestId);
+      if (result['ok'] == true) {
+        await loadAgencyRequests();
+        return {'ok': true, 'message': 'تمت الموافقة على سحب الراتب'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل الموافقة'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Agent/owner: reject a member's salary-withdrawal request.
+  Future<Map<String, dynamic>> rejectWithdrawal(String requestId) async {
+    try {
+      final result = await AgencyApiService().rejectWithdrawal(requestId);
+      if (result['ok'] == true) {
+        await loadAgencyRequests();
+        return {'ok': true, 'message': 'تم رفض طلب السحب'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل الرفض'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Agent/owner: accept (or reject) a member's agency-leave request.
+  Future<Map<String, dynamic>> respondLeave(String requestId, bool approve) async {
+    try {
+      final result = await AgencyApiService().respondLeave(requestId, approve: approve);
+      if (result['ok'] == true) {
+        await loadAgencyRequests();
+        return {'ok': true, 'message': approve ? 'تم قبول الانسحاب من الوكالة' : 'تم رفض الانسحاب'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل تنفيذ الطلب'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Member requests to leave the agency (needs agent approval).
+  Future<Map<String, dynamic>> requestLeaveAgency() async {
+    try {
+      final result = await AgencyApiService().requestLeave();
+      if (result['ok'] == true) {
+        return {'ok': true, 'message': 'تم إرسال طلب الانسحاب، بانتظار موافقة الوكيل'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل إرسال الطلب'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Member sets their shipping agent (by numeric id).
+  Future<Map<String, dynamic>> setMyShippingAgent(String numericId) async {
+    try {
+      final result = await AgencyApiService().setShippingAgent(numericId.trim());
+      if (result['ok'] == true) {
+        await _loadData();
+        return {'ok': true, 'message': 'تم ربط وكيل الشحن بنجاح'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل ربط الوكيل'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Member requests a transfer of `amount` to their shipping agent.
+  Future<Map<String, dynamic>> requestTransfer(int amount) async {
+    try {
+      final result = await AgencyApiService().requestTransfer(amount);
+      if (result['ok'] == true) {
+        await _loadData();
+        return {'ok': true, 'message': 'تم إرسال طلب التحويل، بانتظار موافقة وكيل الشحن'};
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل إرسال التحويل'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Shipping agent: loads transfer requests addressed to them.
+  Future<void> loadMyTransferRequests() async {
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) return;
+      _transferRequests = await AgencyApiService().getTransferRequests(forUserId: uid);
+      notifyListeners();
+    } catch (_) {}
   }
 
   void clearError() {

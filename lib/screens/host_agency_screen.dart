@@ -20,18 +20,20 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   bool get _isHosting => _controller.agencyType == 'hosting';
 
   List<Widget> get _tabs => _isHosting
-      ? [const Tab(text: 'الأعضاء'), const Tab(text: 'الطلبات')]
+      ? const [Tab(text: 'الأعضاء'), Tab(text: 'أرباحي'), Tab(text: 'الطلبات')]
       : [
           const Tab(text: 'الأعضاء'),
+          const Tab(text: 'أرباحي'),
           Tab(text: 'الطلبات${_controller.joinRequests.isNotEmpty ? " (${_controller.joinRequests.length})" : ""}'),
           const Tab(text: 'السجلات'),
           const Tab(text: 'التحويلات'),
         ];
 
   List<Widget> get _tabViews => _isHosting
-      ? [_buildMembersTab(_controller), _buildJoinRequestsTab(_controller)]
+      ? [_buildMembersTab(_controller), _buildEarningsTab(_controller), _buildJoinRequestsTab(_controller)]
       : [
           _buildMembersTab(_controller),
+          _buildEarningsTab(_controller),
           _buildJoinRequestsTab(_controller),
           _buildLogsTab(_controller),
           _buildTransferTab(_controller),
@@ -54,7 +56,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
       final oldIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(
-        length: nowHosting ? 2 : 4,
+        length: nowHosting ? 3 : 5,
         vsync: this,
         initialIndex: nowHosting && oldIndex >= 2 ? 0 : oldIndex,
       );
@@ -533,6 +535,211 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // EARNINGS TAB (أرباحي) - member's own earnings / level / withdraw /
+  // shipping-agent link / transfer / leave-request.
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildEarningsTab(HostAgencyController controller) {
+    final theme = Theme.of(context);
+    final agentCtrl = TextEditingController();
+    final transferCtrl = TextEditingController();
+
+    final hasAgent = (controller.shippingAgentId ?? '').isNotEmpty;
+    final agentName = controller.currentMember?['shipping_agent_name']?.toString() ?? '';
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('أرباحي الحالية', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('المستوى ${controller.myLevel}',
+                          style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text('${controller.myBalance}', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 34, fontWeight: FontWeight.bold)),
+                  Text('ماس', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('التارجت: ${controller.myTarget}', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+                      Text('باقي ${controller.myRemaining}', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: controller.myProgress,
+                      minHeight: 12,
+                      backgroundColor: theme.scaffoldBackgroundColor,
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text('${(controller.myProgress * 100).toStringAsFixed(0)}%',
+                      style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 10)),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (controller.myBalance <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا يوجد رصيد قابل للسحب'), backgroundColor: Colors.orange));
+                          return;
+                        }
+                        final result = await controller.requestSalaryWithdrawal();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message']), backgroundColor: result['ok'] ? Colors.green : Colors.red));
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      child: const Text('سحب أرباحي', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ── Shipping agent linking + transfer ──
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('وكيل الشحن', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 8),
+                  if (hasAgent)
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 13),
+                        children: [
+                          const TextSpan(text: 'وكيلك: '),
+                          TextSpan(text: agentName.isNotEmpty ? agentName : controller.shippingAgentId, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    TextField(
+                      controller: agentCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'آيدي وكيل الشحن', filled: true, fillColor: theme.scaffoldBackgroundColor, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (agentCtrl.text.trim().isEmpty) return;
+                          final r = await controller.setMyShippingAgent(agentCtrl.text.trim());
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                            setState(() {});
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary),
+                        child: const Text('ربط وكيل الشحن', style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                  if (hasAgent) ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: transferCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'المبلغ (ماس)', filled: true, fillColor: theme.scaffoldBackgroundColor, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final amount = int.tryParse(transferCtrl.text.trim()) ?? 0;
+                          if (amount <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أدخل مبلغاً صحيحاً'), backgroundColor: Colors.orange));
+                            return;
+                          }
+                          final r = await controller.requestTransfer(amount);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                            if (r['ok'] == true) transferCtrl.clear();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary),
+                        child: const Text('تحويل لوكيل الشحن', style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ── Leave request ──
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.red.withValues(alpha: 0.2))),
+              child: Row(
+                children: [
+                  Icon(Icons.logout, color: Colors.red),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text('رابط يرغب بالانسحاب من الوكالة؟ أرسل طلباً للوكيل للموافقة.',
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: const Text('طلب الانسحاب'),
+                      content: const Text('سيتم إرسال طلب انسحاب إلى الوكيل للموافقة. متابعة؟'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('إلغاء')),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('إرسال')),
+                      ],
+                    ),
+                  );
+                  if (confirm == true && mounted) {
+                    final r = await controller.requestLeaveAgency();
+                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                  }
+                },
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: BorderSide(color: Colors.red.withValues(alpha: 0.5))),
+                child: const Text('إرسال طلب الانسحاب من الوكالة'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text('ملاحظة: تُصفَّر أرباحك مباشرة بعد سحب الراتب (بدون ترحيل). إذا كانت الفترة أسبوعية ولم تسحب تُرحَّل للفترة التالية.',
+                style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11)),
+          ],
+        );
+      },
+    );
+  }
+
   // Invite a user (by numeric id) to join the agency as host/member
   Widget _buildInviteCard(ThemeData theme, HostAgencyController controller) {
     final inviteCtrl = TextEditingController();
@@ -959,29 +1166,139 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   // ═══════════════════════════════════════════════════════════════
   Widget _buildJoinRequestsTab(HostAgencyController controller) {
     final theme = Theme.of(context);
-    if (controller.joinRequests.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.person_add_outlined, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text('لا توجد طلبات أو دعوات', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
-          ],
-        ),
-      );
+    final isOwner = controller.isOwner;
+
+    // Build the list of child widgets: owner approval sections first,
+    // then join requests.
+    final children = <Widget>[];
+
+    // ── Owner: pending salary-withdrawal requests ──
+    if (isOwner && controller.withdrawRequests.isNotEmpty) {
+      children.add(Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text('طلبات سحب الأرباح', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 15)),
+      ));
+      controller.withdrawRequests.toList().forEach((req) {
+        children.add(Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: (req['user_photo'] as String?)?.isNotEmpty == true ? NetworkImage(req['user_photo'] as String) : null,
+                    child: (req['user_photo'] as String?)?.isNotEmpty == true ? null : const Icon(Icons.person),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(req['user_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
+                        Text('المبلغ: ${req['amount']} ماس', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 13, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'موافقة',
+                        onPressed: () async {
+                          final r = await controller.approveWithdrawal(req['id']);
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                        },
+                        icon: const Icon(Icons.check_circle, color: Colors.green),
+                      ),
+                      IconButton(
+                        tooltip: 'رفض',
+                        onPressed: () async {
+                          final r = await controller.rejectWithdrawal(req['id']);
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                        },
+                        icon: const Icon(Icons.cancel, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ));
+      });
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: controller.joinRequests.length,
-      itemBuilder: (context, index) {
-        final req = controller.joinRequests[index];
+    // ── Owner: pending leave requests ──
+    if (isOwner && controller.leaveRequests.isNotEmpty) {
+      children.add(Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text('طلبات الانسحاب من الوكالة', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 15)),
+      ));
+      controller.leaveRequests.toList().forEach((req) {
+        children.add(Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.logout, color: Colors.red),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(req['user_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
+              ),
+              IconButton(
+                tooltip: 'قبول الانسحاب',
+                onPressed: () async {
+                  final r = await controller.respondLeave(req['id'], true);
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                },
+                icon: const Icon(Icons.check_circle, color: Colors.green),
+              ),
+              IconButton(
+                tooltip: 'رفض',
+                onPressed: () async {
+                  final r = await controller.respondLeave(req['id'], false);
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
+                },
+                icon: const Icon(Icons.cancel, color: Colors.red),
+              ),
+            ],
+          ),
+        ));
+      });
+    }
+
+    // ── Join/invite requests ──
+    if (controller.joinRequests.isEmpty) {
+      children.add(Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 80),
+          child: Column(
+            children: [
+              Icon(Icons.person_add_outlined, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+              const SizedBox(height: 16),
+              Text('لا توجد طلبات أو دعوات', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+            ],
+          ),
+        ),
+      ));
+    } else {
+      controller.joinRequests.toList().forEach((req) {
         final status = req['status'] as String? ?? 'pending';
         final isInvited = status == 'invited';
         final borderColor = isInvited ? Colors.blue.withValues(alpha: 0.3) : Colors.amber.withValues(alpha: 0.2);
-
-        return Container(
+        children.add(Container(
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(14), border: Border.all(color: borderColor)),
@@ -1035,8 +1352,13 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               ),
             ],
           ),
-        );
-      },
+        ));
+      });
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      children: children,
     );
   }
 

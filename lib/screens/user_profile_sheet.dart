@@ -164,7 +164,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
       if (agencyId == null) return;
 
       final agencyRows = await SupabaseService.client
-          .from('host_agencies')
+          .from('agencies')
           .select('name, photo_url')
           .eq('id', agencyId)
           .limit(1);
