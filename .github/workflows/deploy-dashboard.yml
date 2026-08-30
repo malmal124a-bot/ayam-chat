@@ -32,7 +32,8 @@ jobs:
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          # Team that owns the dashboard project (admincore-dashboar):
+          vercel-org-id: team_xJaun2gTEktZdEmrANnKZnjd
+          vercel-project-id: prj_omGZlJslQ25iWLwTvNvXnnwVP6pb
           working-directory: admincore-dashboard
           vercel-args: '--prod'
