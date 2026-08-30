@@ -26,6 +26,8 @@ jobs:
 
       - name: Build dashboard
         working-directory: admincore-dashboard
+        env:
+          VITE_SUPABASE_SERVICE_ROLE: ${{ secrets.VITE_SUPABASE_SERVICE_ROLE }}
         run: npm run build
 
       - name: Deploy to Vercel (production) via REST API
