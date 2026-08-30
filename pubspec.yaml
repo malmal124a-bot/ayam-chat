@@ -31,6 +31,8 @@ dependencies:
   realtime_client: ^2.13.0
   google_sign_in: ^6.3.0
   http: ^1.2.2
+  package_info_plus: ^4.2.0
+  open_filex: ^4.7.0
 
 dependency_overrides:
   http: ^1.2.2

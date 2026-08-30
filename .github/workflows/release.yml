@@ -46,8 +46,25 @@ jobs:
             echo "::notice::No keystore secrets set - building with debug signing instead."
           fi
 
+      - name: Set build number
+        run: |
+          sed -i -E "s/^version: .*/version: 1.0.0+${{ github.run_number }}/" pubspec.yaml
+          grep "^version:" pubspec.yaml
+
       - name: Build release APK
         run: flutter build apk --release --android-skip-build-dependency-validation
+
+      - name: Write version.json
+        run: |
+          cat > version.json <<'JSON'
+          {
+            "version": "1.0.0",
+            "build": ${{ github.run_number }},
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/latest-apk/app-release.apk",
+            "notes": "تحديث جديد من Ayam Chat."
+          }
+          JSON
+          cat version.json
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -55,10 +72,12 @@ jobs:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Publish APK to GitHub Release
+      - name: Publish APK + version.json to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            version.json
           generate_release_notes: false
           name: latest-apk
           tag_name: latest-apk

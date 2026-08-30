@@ -63,3 +63,6 @@ temp_*
 # Local Firebase / Supabase helper scripts that may embed secrets
 *.firebase-service-account.json
 *-service-account.json
+
+# CI-generated update manifest
+version.json

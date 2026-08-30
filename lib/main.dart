@@ -40,6 +40,8 @@ import 'services/screen_visual_service.dart';
 import 'services/level_service.dart';
 import 'services/badge_necklace_services.dart';
 import 'services/realtime_updates_service.dart';
+import 'services/app_update_service.dart';
+import 'widgets/update_dialog.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -136,6 +138,13 @@ class _SplashScreenState extends State<_SplashScreen>
       Get.put(DailyCheckinController());
 
       _updateStatus('فتح التطبيق...');
+
+      // Prompt for an available app update (download + install) if published.
+      if (!mounted) return;
+      final update = await AppUpdateService.checkForUpdate();
+      if (update != null && mounted) {
+        await showAppUpdateDialog(context, update);
+      }
 
       if (!mounted) return;
 
