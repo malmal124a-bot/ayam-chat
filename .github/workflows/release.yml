@@ -38,7 +38,9 @@ jobs:
         run: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/upload-keystore.jks
-            echo "storePassword=$ANDROID_STORE_PASSWORD" > android/key.properties
+            # Fallback: some repos have the secret stored as NDROID_STORE_PASSWORD.
+            STORE_PW="${ANDROID_STORE_PASSWORD:-${{ secrets.NDROID_STORE_PASSWORD }}}"
+            echo "storePassword=$STORE_PW" > android/key.properties
             echo "keyPassword=$ANDROID_KEY_PASSWORD" >> android/key.properties
             echo "keyAlias=$ANDROID_KEY_ALIAS" >> android/key.properties
             echo "storeFile=upload-keystore.jks" >> android/key.properties
