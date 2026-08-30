@@ -591,3 +591,4 @@ class GiftController extends ChangeNotifier {
       }).eq('agency_id', agencyId).eq('user_id', memberUserId);
     } catch (_) {}
   }
+}
