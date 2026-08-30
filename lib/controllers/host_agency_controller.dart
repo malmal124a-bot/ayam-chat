@@ -21,6 +21,7 @@ class HostAgencyController extends ChangeNotifier {
   Map<String, dynamic>? _openRequest; // agency_open_requests row
   List<Map<String, dynamic>> _openAgencies = []; // browseable open agencies
   List<String> _requestedAgencyIds = []; // agency ids the user already requested
+  List<Map<String, dynamic>> _incomingInvites = []; // invites addressed to me
   bool _isLoading = false;
   String? _errorMessage;
   bool _agencyDeleted = false;
@@ -45,6 +46,7 @@ class HostAgencyController extends ChangeNotifier {
       _openRequest != null && (_openRequest!['status'] == 'rejected');
   List<Map<String, dynamic>> get openAgencies => _openAgencies;
   List<String> get requestedAgencyIds => _requestedAgencyIds;
+  List<Map<String, dynamic>> get incomingInvites => _incomingInvites;
   bool hasRequestedAgency(String agencyId) => _requestedAgencyIds.contains(agencyId);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -227,16 +229,14 @@ class HostAgencyController extends ChangeNotifier {
           _wallet = {'diamonds_balance': 0, 'total_recharged': 0, 'total_withdrawn': 0};
         }
 
-        // Load join requests (pending + invited).
-        // NOTE: we intentionally do NOT rely on an embedded FK join to
-        // `users` (e.g. `users!host_agency_join_requests_user_id_fkey`)
-        // because that foreign key is dropped by the uuid->text migration
-        // and may not exist. Fetch member info separately instead.
+        // Load join requests (pending only). Invites the owner sent are NOT
+        // shown in the owner's queue: they are delivered to the invitee, who
+        // accepts or declines them on their own side.
         final requestsData = await _client
             .from('host_agency_join_requests')
             .select('*')
             .eq('agency_id', agencyId)
-            .inFilter('status', ['pending', 'invited']);
+            .eq('status', 'pending');
 
         final List<Map<String, dynamic>> enrichedRequests = [];
         for (final r in (requestsData as List)) {
@@ -309,8 +309,41 @@ class HostAgencyController extends ChangeNotifier {
         }
         // Also load the list of open agencies the user can browse & join.
         await _fetchOpenAgencies();
+
+        // Load invites addressed TO me (sent by an agency owner). These are
+        // accepted/declined by ME (the invitee), not by the owner.
+        try {
+          final invites = await _client
+              .from('host_agency_join_requests')
+              .select('*')
+              .eq('user_id', uid)
+              .eq('status', 'invited')
+              .order('created_at', ascending: false);
+          final List<Map<String, dynamic>> enriched = [];
+          for (final r in (invites as List)) {
+            final agencyId = (r['agency_id'] ?? '').toString();
+            Map<String, dynamic>? ag;
+            try {
+              ag = await _client
+                  .from('agencies')
+                  .select('name, photo_url, owner_id')
+                  .eq('id', agencyId)
+                  .maybeSingle();
+            } catch (_) {}
+            enriched.add({
+              ...r as Map<String, dynamic>,
+              'agency_name': ag?['name'] ?? '',
+              'agency_photo': ag?['photo_url'] ?? '',
+              'owner_id': ag?['owner_id'] ?? '',
+            });
+          }
+          _incomingInvites = enriched;
+        } catch (_) {
+          _incomingInvites = [];
+        }
       } else {
         _openRequest = null;
+        _incomingInvites = [];
       }
 
       _subscribeToAgencyChanges();
@@ -368,6 +401,50 @@ class HostAgencyController extends ChangeNotifier {
       if (!_requestedAgencyIds.contains(agencyId)) {
         _requestedAgencyIds.add(agencyId);
       }
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return e.toString().replaceFirst('Exception: ', '');
+    }
+  }
+
+  /// Respond to an invite sent TO me. When accepted, the join request becomes
+  /// 'approved' and the user is inserted as a member of the agency.
+  Future<String?> respondInvite(String requestId, String agencyId, bool accept) async {
+    try {
+      if (accept) {
+        final row = await _client
+            .from('host_agency_join_requests')
+            .select('agency_id')
+            .eq('id', requestId)
+            .maybeSingle();
+        if (row == null) return 'الدعوة لم تعد موجودة';
+        final targetAgency = (row['agency_id'] ?? agencyId).toString();
+
+        final owner = await _client
+            .from('agencies')
+            .select('owner_id')
+            .eq('id', targetAgency)
+            .maybeSingle();
+        final uid = _client.auth.currentUser?.id ?? '';
+        await _client.from('host_agency_members').insert({
+          'agency_id': targetAgency,
+          'user_id': uid,
+          'owner_id': owner?['owner_id'],
+          'role': 'host',
+          'status': 'active',
+        });
+        await _client
+            .from('host_agency_join_requests')
+            .update({'status': 'approved'})
+            .eq('id', requestId);
+      } else {
+        await _client
+            .from('host_agency_join_requests')
+            .update({'status': 'declined'})
+            .eq('id', requestId);
+      }
+      _incomingInvites.removeWhere((r) => (r['id'] ?? '').toString() == requestId);
       notifyListeners();
       return null;
     } catch (e) {

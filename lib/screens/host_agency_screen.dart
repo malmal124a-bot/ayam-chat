@@ -148,6 +148,77 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
     );
   }
 
+  List<Widget> _buildIncomingInvites(
+      ThemeData theme, HostAgencyController controller) {
+    final invites = controller.incomingInvites;
+    if (invites.isEmpty) return const [];
+
+    return [
+      Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.secondary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.secondary.withValues(alpha: 0.4),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.mail_outline, color: theme.colorScheme.secondary, size: 20),
+                const SizedBox(width: 8),
+                Text('لديك دعوات انضمام',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.secondary)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...invites.map((inv) {
+              final requestId = (inv['id'] ?? '').toString();
+              final agencyId = (inv['agency_id'] ?? '').toString();
+              final name = (inv['agency_name'] ?? '').toString();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name.isEmpty ? 'دعوة انضمام إلى وكالة' : 'دعوة للانضمام إلى $name',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await controller.respondInvite(requestId, agencyId, false);
+                      },
+                      child: const Text('رفض'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.secondary),
+                      onPressed: () async {
+                        await controller.respondInvite(requestId, agencyId, true);
+                        await controller.refresh();
+                      },
+                      child: const Text('قبول',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    ];
+  }
+
   Widget _buildNoAgency(ThemeData theme, HostAgencyController controller) {
     final bool pending = controller.hasOpenRequest;
     final bool approved = controller.openRequestApproved;
@@ -168,6 +239,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              ..._buildIncomingInvites(theme, controller),
               if (pending)
                 _buildStatus(theme,
                     icon: Icons.hourglass_top,
