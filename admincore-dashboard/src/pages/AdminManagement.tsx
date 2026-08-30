@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { I18nContext } from '../lib/i18n';
 import { getAdminSupabase } from '../lib/supabase';
 import type { AppUser } from '../lib/auth';
+import { NAV_GROUPS } from '../lib/nav';
 import {
   Shield, ShieldOff, UserPlus, Trash2, Ban, CheckCircle, XCircle,
   Search, Save, X, RefreshCw, LogIn,
@@ -14,22 +15,10 @@ import {
 } from '../lib/db';
 import type { AdminUser, AdminActionLog, DashboardBan } from '../types';
 
-const ALL_PERMISSIONS: { key: string; ar: string; en: string }[] = [
-  { key: 'users', ar: 'إدارة المستخدمين', en: 'Users' },
-  { key: 'gifts', ar: 'الهدايا', en: 'Gifts' },
-  { key: 'store', ar: 'المتجر', en: 'Store' },
-  { key: 'rooms', ar: 'الغرف', en: 'Rooms' },
-  { key: 'unions', ar: 'العائلات', en: 'Unions' },
-  { key: 'vip', ar: 'VIP', en: 'VIP' },
-  { key: 'levels', ar: 'المستويات', en: 'Levels' },
-  { key: 'badges', ar: 'الشارات', en: 'Badges' },
-  { key: 'necklaces', ar: 'القلائد', en: 'Necklaces' },
-  { key: 'banners', ar: 'البانرات', en: 'Banners' },
-  { key: 'agency', ar: 'الوكالات', en: 'Agency' },
-  { key: 'notifications', ar: 'الإشعارات', en: 'Notifications' },
-  { key: 'settings', ar: 'الإعدادات', en: 'Settings' },
-  { key: 'admins', ar: 'المشرفين', en: 'Admins' },
-];
+// Every page is its own permission toggle, grouped exactly like the sidebar.
+const ALL_PERMISSIONS: { key: string; ar: string; en: string }[] = NAV_GROUPS.flatMap(
+  (g) => g.items.map((it) => ({ key: it.key, ar: it.label, en: it.label })),
+);
 
 export default function AdminManagement({ currentUser }: { currentUser: AppUser | null }) {
   const { t, lang } = useContext(I18nContext);

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import Layout from './components/Layout';
 import { ToastProvider } from './lib/ui';
+import { getAdminSession, logout as authLogout, type AppUser } from './lib/auth';
+import { canAccess, firstAllowedPage } from './lib/nav';
 import AdminManagement from './pages/AdminManagement';
 import Agency from './pages/Agency';
 import AppAssets from './pages/AppAssets';
@@ -44,25 +46,41 @@ import VisualManager from './pages/VisualManager';
 const AUTH_KEY = 'ayam_admin_auth';
 
 export default function App() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem(AUTH_KEY) === '1');
-  const [page, setPage] = useState('overview');
+  const [session, setSession] = useState<AppUser | null>(() => getAdminSession());
+  const [page, setPage] = useState<string>(() => {
+    const s = getAdminSession();
+    return s ? firstAllowedPage(s.permissions, s.role) : 'overview';
+  });
 
   useEffect(() => {
     document.title = 'لوحة تحكم Ayam Chat';
   }, []);
 
-  if (!authed) {
-    return <Login onLogin={() => setAuthed(true)} />;
+  if (!session) {
+    return (
+      <Login
+        onLogin={() => {
+          const s = getAdminSession();
+          setSession(s);
+          if (s) setPage(firstAllowedPage(s.permissions, s.role));
+        }}
+      />
+    );
   }
 
   const logout = () => {
-    sessionStorage.removeItem(AUTH_KEY);
-    setAuthed(false);
+    authLogout();
+    setSession(null);
+  };
+
+  const navigate = (p: string) => {
+    if (!canAccess(session.permissions, p, session.role)) return;
+    setPage(p);
   };
 
   return (
     <ToastProvider>
-      <Layout page={page} onNavigate={setPage} onLogout={logout}>
+      <Layout page={page} onNavigate={navigate} onLogout={logout} currentUser={session}>
         {page === 'overview' && <Overview />}
         {page === 'dashboard' && <Dashboard />}
         {page === 'users' && <Users />}
@@ -97,7 +115,7 @@ export default function App() {
         {page === 'profileCustomize' && <ProfileCustomize />}
         {page === 'notifications' && <Notifications />}
         {page === 'signinFeatures' && <SigninFeatures />}
-        {page === 'adminManagement' && <AdminManagement currentUser={null} />}
+        {page === 'adminManagement' && <AdminManagement currentUser={session} />}
         {page === 'bd' && <BD />}
         {page === 'errorAnalysis' && <ErrorAnalysis />}
         {page === 'settings' && <Settings />}

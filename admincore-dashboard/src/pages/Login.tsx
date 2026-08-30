@@ -1,24 +1,82 @@
 import { useState } from 'react';
+import { supabase, getAdminSupabase } from '../lib/supabase';
+import { setAdminSession, type AppUser } from '../lib/auth';
+import { getAdminUser } from '../lib/db';
 
 const ADMIN_PASS: string = import.meta.env.VITE_ADMIN_PASS || 'ayam-admin';
 
 export default function Login({ onLogin }: { onLogin: () => void }) {
+  const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     setBusy(true);
     setError('');
-    setTimeout(() => {
+    try {
+      // 1) Master passcode (owner bootstrap) — full access, no DB row needed.
       if (pass === ADMIN_PASS) {
-        sessionStorage.setItem('ayam_admin_auth', '1');
+        const master: AppUser = {
+          id: 'master',
+          email: 'admin@ayam',
+          displayName: 'المالك',
+          photoUrl: null,
+          role: 'superadmin',
+          permissions: {},
+        };
+        setAdminSession(master);
         onLogin();
-      } else {
-        setError('كلمة المرور غير صحيحة');
-        setBusy(false);
+        return;
       }
-    }, 300);
+
+      // 2) Real admin account (Supabase Auth + admin_users profile).
+      const cleanEmail = email.trim();
+      if (!cleanEmail || !cleanEmail.includes('@')) {
+        setError('أدخل البريد الإلكتروني وكلمة المرور الخاصين بالمشرف');
+        setBusy(false);
+        return;
+      }
+
+      const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: pass,
+      });
+      if (authErr || !authData.user) {
+        setError('بيانات الدخول غير صحيحة');
+        setBusy(false);
+        return;
+      }
+
+      const uid = authData.user.id;
+      const profile = await getAdminUser(uid);
+      if (!profile) {
+        setError('هذا الحساب غير مسجل كمشرف في النظام');
+        await supabase.auth.signOut().catch(() => {});
+        setBusy(false);
+        return;
+      }
+      if (profile.isActive === false) {
+        setError('الحساب معطل، تواصل مع المالك');
+        await supabase.auth.signOut().catch(() => {});
+        setBusy(false);
+        return;
+      }
+
+      const user: AppUser = {
+        id: profile.uid,
+        email: profile.email,
+        displayName: profile.displayName,
+        photoUrl: profile.photoUrl,
+        role: profile.role,
+        permissions: profile.permissions,
+      };
+      setAdminSession(user);
+      onLogin();
+    } catch (e: any) {
+      setError(e?.message || 'حدث خطأ أثناء الدخول');
+      setBusy(false);
+    }
   };
 
   return (
@@ -57,13 +115,27 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
 
         <label style={{ display: 'block', marginBottom: 14 }}>
           <div style={{ marginBottom: 6, color: 'var(--muted)', fontWeight: 700, fontSize: 12 }}>
-            كلمة مرور المسؤول
+            البريد الإلكتروني
+          </div>
+          <input
+            className="input"
+            type="email"
+            value={email}
+            autoFocus
+            placeholder="admin@example.com"
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+          />
+        </label>
+
+        <label style={{ display: 'block', marginBottom: 14 }}>
+          <div style={{ marginBottom: 6, color: 'var(--muted)', fontWeight: 700, fontSize: 12 }}>
+            كلمة المرور
           </div>
           <input
             className="input"
             type="password"
             value={pass}
-            autoFocus
             placeholder="••••••••"
             onChange={(e) => setPass(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
@@ -79,9 +151,9 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
         </button>
 
         <p style={{ color: 'var(--muted)', fontSize: 11, textAlign: 'center', marginTop: 18, lineHeight: 1.8 }}>
-          كلمة المرور الافتراضية: <b style={{ color: 'var(--gold)' }}>ayam-admin</b>
+          كلمة المرور الافتراضية للمالك: <b style={{ color: 'var(--gold)' }}>{ADMIN_PASS}</b>
           <br />
-          يمكن تغييرها عبر متغير <code>VITE_ADMIN_PASS</code>
+          يمكن تغييرها عبر متغير <code>VITE_ADMIN_PASS</code> — ولإنشاء مشرفين جدد ادخل من صفحة «إدارة المشرفين»
         </p>
       </div>
     </div>

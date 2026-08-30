@@ -1,80 +1,6 @@
 import { useState, type ReactNode } from 'react';
-
-const NAV_GROUPS: { title?: string; items: { key: string; label: string; icon: string }[] }[] = [
-  {
-    items: [
-      { key: 'overview', label: 'نظرة عامة', icon: '📊' },
-      { key: 'dashboard', label: 'الإحصائيات', icon: '📈' },
-      { key: 'users', label: 'المستخدمون', icon: '👥' },
-      { key: 'rooms', label: 'الغرف', icon: '🏠' },
-      { key: 'messages', label: 'رسائل الغرف', icon: '💬' },
-      { key: 'dms', label: 'الرسائل الخاصة', icon: '✉️' },
-    ],
-  },
-  {
-    title: 'المتجر والهدايا',
-    items: [
-      { key: 'store', label: 'المتجر / الهدايا', icon: '🛍️' },
-      { key: 'gifts', label: 'الهدايا', icon: '🎁' },
-      { key: 'giftCategories', label: 'تصنيفات الهدايا', icon: '📁' },
-      { key: 'giftItems', label: 'الهدايا المرسلة', icon: '🎀' },
-      { key: 'giftBoxCustomize', label: 'صندوق الهدايا', icon: '📦' },
-      { key: 'giftBannerConfigs', label: 'لافتات الهدايا', icon: '🖼️' },
-      { key: 'svgaOverrides', label: 'روابط SVGA', icon: '🎬' },
-      { key: 'banners', label: 'البنرات', icon: '🚩' },
-    ],
-  },
-  {
-    title: 'الشارات والمستويات',
-    items: [
-      { key: 'badges', label: 'الشارات', icon: '🏅' },
-      { key: 'necklaces', label: 'القلائد', icon: '📿' },
-      { key: 'badgeNecklaceGifts', label: 'إهداء شارات/قلائد', icon: '💝' },
-      { key: 'levels', label: 'المستويات', icon: '⬆️' },
-    ],
-  },
-  {
-    title: 'VIP و CP',
-    items: [
-      { key: 'vip', label: 'VIP', icon: '👑' },
-      { key: 'vipGifting', label: 'إهداء VIP', icon: '💎' },
-      { key: 'cp', label: 'CP', icon: '💑' },
-      { key: 'cpFeatures', label: 'ميزات CP', icon: '⚙️' },
-      { key: 'cpVisualManager', label: 'مظهر CP', icon: '🎨' },
-      { key: 'unions', label: 'العائلات', icon: '🤝' },
-      { key: 'agency', label: 'الوكالات', icon: '🏢' },
-    ],
-  },
-  {
-    title: 'تخصيص التطبيق',
-    items: [
-      { key: 'appAssets', label: 'أصول التطبيق', icon: '🗂️' },
-      { key: 'appIcons', label: 'أيقونات التطبيق', icon: '🔲' },
-      { key: 'imageCustomize', label: 'تخصيص الصور', icon: '🖼️' },
-      { key: 'colorCustomize', label: 'تخصيص الألوان', icon: '🎨' },
-      { key: 'screenCustomization', label: 'تخصيص الشاشات', icon: '📱' },
-      { key: 'visualManager', label: 'مدير المظهر', icon: '✨' },
-      { key: 'profileCustomize', label: 'تخصيص الملف', icon: '👤' },
-    ],
-  },
-  {
-    title: 'النظام',
-    items: [
-      { key: 'signinFeatures', label: 'مكافآت تسجيل الدخول', icon: '📅' },
-      { key: 'notifications', label: 'الإشعارات', icon: '🔔' },
-      { key: 'adminManagement', label: 'إدارة المشرفين', icon: '🔐' },
-      { key: 'bd', label: 'شركاء BD', icon: '🤝' },
-      { key: 'errorAnalysis', label: 'تحليل الأخطاء', icon: '🐞' },
-      { key: 'settings', label: 'الإعدادات', icon: '⚙️' },
-    ],
-  },
-];
-
-const NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
-
-const PAGE_TITLES: Record<string, string> = Object.fromEntries(
-  NAV_ITEMS.map((n) => [n.key, n.label]),
-);
+import { NAV_GROUPS, PAGE_TITLES, canAccess } from '../lib/nav';
+import type { AppUser } from '../lib/auth';
 
 const SIDEBAR_W = 230;
 
@@ -83,13 +9,23 @@ export default function Layout({
   onNavigate,
   onLogout,
   children,
+  currentUser,
 }: {
   page: string;
   onNavigate: (p: string) => void;
   onLogout: () => void;
   children: ReactNode;
+  currentUser: AppUser | null;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+
+  // Only show nav items the current admin is allowed to access.
+  const visibleGroups = NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((it) =>
+      canAccess(currentUser?.permissions, it.key, currentUser?.role),
+    ),
+  })).filter((g) => g.items.length > 0);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg)', color: '#cbd5e1' }}>
@@ -132,7 +68,7 @@ export default function Layout({
         </div>
 
         <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
-          {NAV_GROUPS.map((group, gi) => (
+          {visibleGroups.map((group, gi) => (
             <div key={gi} style={{ marginBottom: 10 }}>
               {!collapsed && group.title && (
                 <div
@@ -236,8 +172,20 @@ export default function Layout({
           <h1 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--gold)' }}>
             {PAGE_TITLES[page] ?? 'لوحة التحكم'}
           </h1>
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-            نفس قاعدة بيانات التطبيق — Supabase مباشرة
+          <span style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {currentUser?.displayName ? (
+              <span style={{
+                background: 'var(--gold)',
+                color: '#1a1a1a',
+                fontWeight: 800,
+                padding: '2px 9px',
+                borderRadius: 20,
+                fontSize: 11,
+              }}>
+                {currentUser.displayName}
+              </span>
+            ) : null}
+            {currentUser?.role ? <span>{currentUser.role}</span> : null}
           </span>
         </header>
 
