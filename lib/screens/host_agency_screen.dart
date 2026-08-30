@@ -1194,15 +1194,15 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundImage: (req['user_photo'] as String?)?.isNotEmpty == true ? NetworkImage(req['user_photo'] as String) : null,
-                    child: (req['user_photo'] as String?)?.isNotEmpty == true ? null : const Icon(Icons.person),
+                    backgroundImage: (req['member_photo_url'] as String?)?.isNotEmpty == true ? NetworkImage(req['member_photo_url'] as String) : null,
+                    child: (req['member_photo_url'] as String?)?.isNotEmpty == true ? null : const Icon(Icons.person),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(req['user_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
+                        Text(req['member_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
                         Text('المبلغ: ${req['amount']} ماس', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 13, fontWeight: FontWeight.bold)),
                       ],
                     ),
@@ -1255,7 +1255,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               const Icon(Icons.logout, color: Colors.red),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(req['user_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
+                child: Text(req['member_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
               ),
               IconButton(
                 tooltip: 'قبول الانسحاب',

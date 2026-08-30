@@ -655,10 +655,12 @@ class HostAgencyController extends ChangeNotifier {
     final agencyId = _agency?['id'] as String?;
     if (agencyId == null) return;
     try {
-      _withdrawRequests = await AgencyApiService().getWithdrawalRequests(agencyId);
+      _withdrawRequests = (await AgencyApiService().getWithdrawalRequests(agencyId))
+          .map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } catch (_) { _withdrawRequests = []; }
     try {
-      _leaveRequests = await AgencyApiService().getLeaveRequests(agencyId);
+      _leaveRequests = (await AgencyApiService().getLeaveRequests(agencyId))
+          .map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } catch (_) { _leaveRequests = []; }
     notifyListeners();
   }
@@ -751,7 +753,8 @@ class HostAgencyController extends ChangeNotifier {
     try {
       final uid = _client.auth.currentUser?.id;
       if (uid == null) return;
-      _transferRequests = await AgencyApiService().getTransferRequests(forUserId: uid);
+      _transferRequests = (await AgencyApiService().getTransferRequests(forUserId: uid))
+          .map((e) => Map<String, dynamic>.from(e as Map)).toList();
       notifyListeners();
     } catch (_) {}
   }
