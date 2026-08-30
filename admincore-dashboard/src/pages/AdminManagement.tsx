@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { I18nContext } from '../lib/i18n';
-import { getAdminSupabase } from '../lib/supabase';
+import { getAdminSupabase, isAdminConnected } from '../lib/supabase';
 import type { AppUser } from '../lib/auth';
 import { NAV_GROUPS } from '../lib/nav';
 import {
@@ -68,6 +68,10 @@ export default function AdminManagement({ currentUser }: { currentUser: AppUser 
 
   const handleCreate = async () => {
     setAddError('');
+    if (!isAdminConnected()) {
+      setAddError(isAr ? 'يجب أولاً إضافة Supabase Service Role Key من صفحة «الإعدادات» لإنشاء مشرفين' : 'Set the Supabase Service Role Key in Settings first');
+      return;
+    }
     if (!addForm.email || !addForm.password) { setAddError(isAr ? 'البريد الإلكتروني وكلمة المرور مطلوبان' : 'Email and password required'); return; }
     if (!addForm.password || addForm.password.length < 6) { setAddError(isAr ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : 'Password must be at least 6 characters'); return; }
     setAddSaving(true);
@@ -114,6 +118,7 @@ export default function AdminManagement({ currentUser }: { currentUser: AppUser 
   };
 
   const handleDelete = async (uid: string) => {
+    if (!isAdminConnected()) { alert(isAr ? 'يجب إضافة Supabase Service Role Key من الإعدادات أولاً' : 'Set the Supabase Service Role Key in Settings first'); return; }
     try {
       await deleteAdminUser(uid);
       await logAdminAction(currentUser?.id || '', currentUser?.email || '', 'delete_admin', 'admin', uid);
