@@ -482,7 +482,7 @@ export default function AdminManagement({ currentUser }: { currentUser: AppUser 
       {/* === ADD ADMIN MODAL === */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-          <div className="bg-[#141417] border border-white/10 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#141417] border border-white/10 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className={`flex items-center justify-between ${isAr ? 'flex-row-reverse' : ''}`}>
               <h3 className="text-white font-semibold text-sm flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-indigo-400" />
@@ -544,7 +544,7 @@ export default function AdminManagement({ currentUser }: { currentUser: AppUser 
       {/* === EDIT PERMISSIONS MODAL === */}
       {editingAdmin && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setEditingAdmin(null)}>
-          <div className="bg-[#141417] border border-white/10 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#141417] border border-white/10 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className={`flex items-center justify-between ${isAr ? 'flex-row-reverse' : ''}`}>
               <h3 className="text-white font-semibold text-sm flex items-center gap-2">
                 <Shield className="w-4 h-4 text-indigo-400" />

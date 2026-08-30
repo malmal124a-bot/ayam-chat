@@ -1355,15 +1355,33 @@ export async function getAdminUser(uid: string): Promise<AdminUser | null> {
 export async function createAdminUser(uid: string, data: Partial<AdminUser>, password: string) {
   const adminClient = getAdminSupabase()
   if (!adminClient) throw new Error('Admin client not available')
+  // The Supabase Auth user gets its own generated UUID. We MUST use that id
+  // as the admin_users row key, otherwise login (which looks up by the Auth
+  // user id) will never find the profile.
+  let authUid = uid
   try {
-    await adminClient.auth.admin.createUser({ email: data.email, password, email_confirm: true })
+    const { data: created, error: createErr } = await adminClient.auth.admin.createUser({
+      email: data.email,
+      password,
+      email_confirm: true,
+    })
+    if (createErr) throw createErr
+    if (created?.user) authUid = created.user.id
   } catch (e: any) {
-    if (!e?.message?.includes('already exists') && !e?.message?.includes('already registered')) {
+    const msg = e?.message || ''
+    if (msg.includes('already exists') || msg.includes('already registered')) {
+      // Auth user already exists — resolve its real id by email.
+      try {
+        const { data: list } = await adminClient.auth.admin.listUsers()
+        const existing = (list?.users || []).find((u: any) => u.email === data.email)
+        if (existing) authUid = existing.id
+      } catch { /* keep fallback uid */ }
+    } else {
       throw e
     }
   }
   const payload: Record<string, unknown> = {
-    uid,
+    uid: authUid,
     email: data.email || '',
     display_name: data.displayName || '',
     role: data.role || 'moderator',
@@ -1374,6 +1392,24 @@ export async function createAdminUser(uid: string, data: Partial<AdminUser>, pas
   }
   const { error } = await adminClient.from('admin_users').upsert(payload as any)
   if (error) throw error
+}
+
+/** Look up an admin profile by email (used to self-heal uid mismatches). */
+export async function getAdminUserByEmail(email: string): Promise<AdminUser | null> {
+  const client = getAdminSupabase() || supabase
+  try {
+    const { data } = await client.from('admin_users').select('*').eq('email', email).maybeSingle()
+    return mapSingle<AdminUser>(data)
+  } catch { return null }
+}
+
+/** Fix a mismatched admin_users row by rewriting its uid to the Auth user id. */
+export async function repairAdminUid(oldUid: string, newUid: string) {
+  const adminClient = getAdminSupabase()
+  if (!adminClient) return
+  try {
+    await adminClient.from('admin_users').update({ uid: newUid }).eq('uid', oldUid)
+  } catch { /* ignore */ }
 }
 
 export async function updateAdminUser(uid: string, data: Partial<AdminUser>) {

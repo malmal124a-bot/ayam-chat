@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase, getAdminSupabase } from '../lib/supabase';
 import { setAdminSession, type AppUser } from '../lib/auth';
-import { getAdminUser } from '../lib/db';
+import { getAdminUser, getAdminUserByEmail, repairAdminUid } from '../lib/db';
 
 const ADMIN_PASS: string = import.meta.env.VITE_ADMIN_PASS || 'ayam-admin';
 
@@ -49,7 +49,15 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
       }
 
       const uid = authData.user.id;
-      const profile = await getAdminUser(uid);
+      let profile = await getAdminUser(uid);
+      if (!profile) {
+        // Self-heal: older rows were created with a non-matching uid. Match by email.
+        const byEmail = await getAdminUserByEmail(cleanEmail);
+        if (byEmail) {
+          await repairAdminUid(byEmail.uid, uid);
+          profile = await getAdminUser(uid);
+        }
+      }
       if (!profile) {
         setError('هذا الحساب غير مسجل كمشرف في النظام');
         await supabase.auth.signOut().catch(() => {});
