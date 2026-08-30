@@ -28,12 +28,10 @@ jobs:
         working-directory: admincore-dashboard
         run: npm run build
 
-      - name: Deploy to Vercel (production)
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          # Team that owns the dashboard project (admincore-dashboar):
-          vercel-org-id: team_xJaun2gTEktZdEmrANnKZnjd
-          vercel-project-id: prj_omGZlJslQ25iWLwTvNvXnnwVP6pb
-          working-directory: admincore-dashboard
-          vercel-args: '--prod'
+      - name: Deploy to Vercel (production) via REST API
+        working-directory: admincore-dashboard
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: team_xJaun2gTEktZdEmrANnKZnjd
+          VERCEL_PROJECT_ID: prj_omGZlJslQ25iWLwTvNvXnnwVP6pb
+        run: node deploy-vercel.mjs dist
