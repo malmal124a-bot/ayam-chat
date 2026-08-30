@@ -44,7 +44,14 @@ android {
             if (keystorePropertiesFile.exists()) {
                 keyAlias = keystoreProperties["keyAlias"] as String?
                 keyPassword = keystoreProperties["keyPassword"] as String?
-                storeFile = file(keystoreProperties["storeFile"] as String?)
+                // Resolve relative to the android/ (rootProject) dir so the
+                // storeFile written by CI ("upload-keystore.jks") is found.
+                val storePath = keystoreProperties["storeFile"] as String?
+                storeFile = if (storePath != null && File(storePath).isAbsolute) {
+                    file(storePath)
+                } else {
+                    file(rootProject.file(storePath ?: ""))
+                }
                 storePassword = keystoreProperties["storePassword"] as String?
             }
         }
