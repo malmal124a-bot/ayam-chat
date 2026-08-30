@@ -408,9 +408,12 @@ class GiftController extends ChangeNotifier {
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
 
-      // AGENCY COMMISSION: Check if receiver is a member of an agency
-      if (actualReceiverId.isNotEmpty && actualReceiverId != SupabaseService.currentUserId) {
-        _processAgencyCommission(actualReceiverId, total);
+      // AGENCY EARNINGS: A hosting-agency member's OWN gift-sends (including
+      // gifts sent to themselves) count toward their earnings/level. We credit
+      // the SENDER's hosting membership, not the receiver's.
+      final senderUid = SupabaseService.currentUserId ?? '';
+      if (senderUid.isNotEmpty) {
+        _processAgencyCommission(senderUid, total);
       }
     } catch (e) {
       debugPrint('GiftController: error persisting gift: $e');
@@ -473,23 +476,23 @@ class GiftController extends ChangeNotifier {
     safeNotify();
   }
 
-  /// Processes agency commission when a gift is received by an agency member.
-  Future<void> _processAgencyCommission(String receiverUserId, int giftValue) async {
+  /// Credits the SENDER's hosting-agency membership with gift-send earnings.
+  /// Includes gifts the host sends to themselves. Also refreshes level/target
+  /// and refreshes the hosting agency screen.
+  Future<void> _processAgencyCommission(String memberUserId, int giftValue) async {
     try {
-      // 1. Find which agency the receiver belongs to
+      // 1. Find which hosting agency the sender belongs to
       final membership = await SupabaseService.client
           .from('host_agency_members')
           .select('agency_id, user_id')
-          .eq('user_id', receiverUserId)
+          .eq('user_id', memberUserId)
           .eq('status', 'active')
           .maybeSingle();
       if (membership == null) return;
 
       final agencyId = membership['agency_id'] as String;
-      final memberUserId = membership['user_id'] as String;
 
       // 2. Get commission settings - per-agency first, fallback to global
-      double commissionPercent = 100.0;
       double giftEntryPercent = 100.0;
       try {
         final settings = await SupabaseService.client
@@ -498,46 +501,24 @@ class GiftController extends ChangeNotifier {
             .eq('agency_id', agencyId)
             .maybeSingle();
         if (settings != null) {
-          commissionPercent = (settings['commission_percent'] as num?)?.toDouble() ?? 100.0;
           giftEntryPercent = (settings['gift_entry_percent'] as num?)?.toDouble() ?? 100.0;
         } else {
-          // Fallback to global commission_settings
           final globalSettings = await SupabaseService.client
               .from('commission_settings')
               .select('*')
-              .inFilter('key', ['gift_commission_percent', 'gift_entry_percent']);
+              .inFilter('key', ['gift_entry_percent']);
           for (final gs in globalSettings) {
-            if (gs['key'] == 'gift_commission_percent') {
-              commissionPercent = (gs['value'] as num?)?.toDouble() ?? 100.0;
-            } else if (gs['key'] == 'gift_entry_percent') {
+            if (gs['key'] == 'gift_entry_percent') {
               giftEntryPercent = (gs['value'] as num?)?.toDouble() ?? 100.0;
             }
           }
         }
       } catch (_) {}
 
-      // 3. Calculate commission for agency
-      final agencyCommission = (giftValue * commissionPercent / 100).toInt();
+      // 3. Host earnings from this gift (sender gets the full entry percent)
       final hostEarnings = (giftValue * giftEntryPercent / 100).toInt();
 
-      // 4. Add commission to agency wallet
-      if (agencyCommission > 0) {
-        try {
-          final wallet = await SupabaseService.client
-              .from('agency_wallets')
-              .select('diamonds_balance, total_earned')
-              .eq('agency_id', agencyId)
-              .maybeSingle();
-          if (wallet != null) {
-            await SupabaseService.client.from('agency_wallets').update({
-              'diamonds_balance': (wallet['diamonds_balance'] ?? 0) + agencyCommission,
-              'total_earned': (wallet['total_earned'] ?? 0) + agencyCommission,
-            }).eq('agency_id', agencyId);
-          }
-        } catch (_) {}
-      }
-
-      // 5. Add earnings to host member record
+      // 4. Add earnings to the sender's host member record
       if (hostEarnings > 0) {
         try {
           final member = await SupabaseService.client
@@ -547,18 +528,66 @@ class GiftController extends ChangeNotifier {
               .eq('user_id', memberUserId)
               .maybeSingle();
           if (member != null) {
+            final newCumulative = (member['diamonds_earned_cumulative'] ?? 0) + hostEarnings;
+            final newBalance = (member['diamonds_balance'] ?? 0) + hostEarnings;
             await SupabaseService.client.from('host_agency_members').update({
-              'diamonds_earned_cumulative': (member['diamonds_earned_cumulative'] ?? 0) + hostEarnings,
+              'diamonds_earned_cumulative': newCumulative,
               'diamonds_earned_monthly': (member['diamonds_earned_monthly'] ?? 0) + hostEarnings,
-              'diamonds_balance': (member['diamonds_balance'] ?? 0) + hostEarnings,
+              'diamonds_balance': newBalance,
             }).eq('agency_id', agencyId).eq('user_id', memberUserId);
+
+            // Recompute level/target based on cumulative earnings.
+            await _recomputeHostLevel(agencyId, memberUserId, newCumulative);
           }
         } catch (_) {}
       }
 
-      debugPrint('Agency commission processed: agency=$agencyId, commission=$agencyCommission, hostEarnings=$hostEarnings');
+      debugPrint('Host agency earnings credited: agency=$agencyId, member=$memberUserId, earnings=$hostEarnings');
     } catch (e) {
-      debugPrint('Error processing agency commission: $e');
+      debugPrint('Error processing agency earnings: $e');
     }
   }
-}
+
+  /// Recomputes a host member's level/target from host_profit_levels based on
+  /// their cumulative earnings (level stored as numeric sort_order, matching
+  /// the backend resolveLevel behaviour).
+  Future<void> _recomputeHostLevel(String agencyId, String memberUserId, int cumulative) async {
+    try {
+      // Load all profit levels ordered by sort_order.
+      final levels = await SupabaseService.client
+          .from('host_profit_levels')
+          .select('*')
+          .order('sort_order');
+      int lvl = 0;
+      int target = 5000;
+      String? periodType = 'weekly';
+      for (final l in levels) {
+        final min = (l['min_cumulative_coins'] as num?)?.toInt() ?? 0;
+        if (cumulative >= min) {
+          lvl = (l['sort_order'] as num?)?.toInt() ?? (lvl + 1);
+          target = (l['target'] as num?)?.toInt() ?? 5000;
+          periodType = (l['period_type'] as String?) ?? 'weekly';
+        }
+      }
+
+      // Period start/end.
+      String? periodStart, periodEnd;
+      final now = DateTime.now();
+      if (periodType == 'monthly') {
+        periodStart = DateTime(now.year, now.month, 1).toIso8601String();
+        periodEnd = DateTime(now.year, now.month + 1, 0).toIso8601String();
+      } else if (periodType == 'weekly') {
+        final monday = now.subtract(Duration(days: now.weekday - 1));
+        periodStart = DateTime(monday.year, monday.month, monday.day).toIso8601String();
+        periodEnd = monday.add(const Duration(days: 7)).toIso8601String();
+      }
+
+      await SupabaseService.client.from('host_agency_members').update({
+        'level': lvl,
+        'target': target,
+        'period_type': periodType,
+        'period_start': periodStart,
+        'period_end': periodEnd,
+      }).eq('agency_id', agencyId).eq('user_id', memberUserId);
+    } catch (_) {}
+  }

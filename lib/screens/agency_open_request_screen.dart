@@ -60,7 +60,15 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
   }
 
   Future<void> _submit(HostAgencyController controller) async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'أكمل جميع الحقول: اسم الوكالة، رقم الهاتف، وآيدي الوكالة'),
+            backgroundColor: Colors.orange),
+      );
+      return;
+    }
     if (_photoFile == null || _idCardFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
