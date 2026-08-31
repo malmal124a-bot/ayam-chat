@@ -8,6 +8,9 @@
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 
+# Google Play Core (referenced by Flutter deferred components, not used)
+-dontwarn com.google.android.play.core.**
+
 # Agora RTC Engine
 -keep class io.agora.** { *; }
 -dontwarn io.agora.**
