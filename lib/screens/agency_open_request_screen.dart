@@ -5,10 +5,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../controllers/host_agency_controller.dart';
 import '../controllers/user_controller.dart';
+import '../services/agency_api_service.dart';
+import '../services/cloudinary_service.dart';
 
 /// "فتح وكالة" form — a user submits their own hosting-agency open request.
-/// Fields: agency photo, phone, agency ID, ID card upload. On submit the
-/// request goes to the admin for approval/rejection.
+/// Fields: agency photo, agency name, agency ID (numeric), WhatsApp number,
+/// ID card upload. On submit the request goes to the admin for approval.
 class AgencyOpenRequestScreen extends StatefulWidget {
   const AgencyOpenRequestScreen({super.key});
 
@@ -25,9 +27,9 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
 
   XFile? _photoFile;
   XFile? _idCardFile;
-  String? _photoUrl;
-  String? _idCardUrl;
   bool _submitting = false;
+  bool _uploadingPhoto = false;
+  bool _uploadingIdCard = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -51,24 +53,23 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
     setState(() => _idCardFile = image);
   }
 
-  Future<String> _upload(
-      XFile file, HostAgencyController controller, String tag) async {
-    if (kIsWeb) return file.path;
-    final bytes = await file.readAsBytes();
-    return controller.uploadImageBytes(bytes, '$tag.png',
-        folder: 'agency_open');
+  Future<String?> _uploadImage(XFile file, String tag) async {
+    try {
+      if (kIsWeb) return file.path;
+      final bytes = await file.readAsBytes();
+      return await CloudinaryService.uploadImageBytes(bytes,
+          fileName: '$tag.png', folder: 'agency_open');
+    } catch (e) {
+      debugPrint('AgencyOpenRequest: upload $tag failed: $e');
+      return null;
+    }
   }
 
-  Future<void> _submit(HostAgencyController controller) async {
-    if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'أكمل جميع الحقول: اسم الوكالة، رقم الهاتف، وآيدي الوكالة'),
-            backgroundColor: Colors.orange),
-      );
-      return;
-    }
+  Future<void> _submit() async {
+    // Validate form fields
+    if (!_formKey.currentState!.validate()) return;
+
+    // Validate images
     if (_photoFile == null || _idCardFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -79,48 +80,71 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
     }
 
     setState(() => _submitting = true);
+
     try {
-      // Resolve the user's numeric id if the agency id field is left empty.
-      var agencyId = _agencyIdController.text.trim();
+      // Get agency ID from the text field
+      final agencyId = _agencyIdController.text.trim();
       if (agencyId.isEmpty) {
-        final user = UserController();
-        agencyId = user.numericId.trim();
-      }
-      if (agencyId.isEmpty) {
+        setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('يرجى إدخال آيدي الوكالة (الرقم)'),
               backgroundColor: Colors.orange),
         );
-        setState(() => _submitting = false);
         return;
       }
 
-      final photoUrl = await _upload(_photoFile!, controller, 'photo');
-      final idCardUrl = await _upload(_idCardFile!, controller, 'idcard');
+      // Upload images
+      setState(() {
+        _uploadingPhoto = true;
+        _uploadingIdCard = true;
+      });
+
+      final photoUrl = await _uploadImage(_photoFile!, 'agency_photo');
+      setState(() => _uploadingPhoto = false);
+
+      final idCardUrl = await _uploadImage(_idCardFile!, 'id_card');
+      setState(() => _uploadingIdCard = false);
+
       if (!mounted) return;
 
-      final result = await controller.submitOpenRequest(
+      // Submit the open request directly via API
+      final result = await AgencyApiService().submitOpenRequest(
         agencyName: _nameController.text.trim(),
         agencyId: agencyId,
         phone: _phoneController.text.trim(),
-        photoUrl: photoUrl,
-        idCardUrl: idCardUrl,
+        photoUrl: photoUrl ?? '',
+        idCardUrl: idCardUrl ?? '',
       );
 
       if (!mounted) return;
+
+      final bool ok = result['ok'] == true;
+      final String message = result['ok'] == true
+          ? 'تم إرسال طلبك بنجاح، جاري مراجعة الإدارة'
+          : (result['error']?.toString() ?? 'حدث خطأ، حاول مرة أخرى');
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(result['message']),
-            backgroundColor: result['ok'] ? Colors.green : Colors.red),
+        SnackBar(content: Text(message), backgroundColor: ok ? Colors.green : Colors.red),
       );
-      if (result['ok'] == true) {
-        Navigator.of(context).pop(true);
+
+      if (ok) {
+        // Also refresh the controller so the pending status shows
+        try {
+          if (mounted) {
+            context.read<HostAgencyController>().refresh();
+          }
+        } catch (_) {}
+
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
       }
     } catch (e) {
+      debugPrint('AgencyOpenRequest: submit error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء الرفع: $e')),
+          SnackBar(content: Text('حدث خطأ: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -185,16 +209,14 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: _submitting
-                        ? null
-                        : () => _submit(context.read<HostAgencyController>()),
+                    onPressed: _submitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14))),
                     child: _submitting
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('التالي',
+                        : const Text('إرسال الطلب',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -219,7 +241,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
 
   Widget _buildPhotoPicker(ThemeData theme) {
     return InkWell(
-      onTap: _pickPhoto,
+      onTap: _uploadingPhoto ? null : _pickPhoto,
       child: Column(
         children: [
           Container(
@@ -232,24 +254,26 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                   color: theme.colorScheme.secondary.withValues(alpha: 0.2)),
             ),
             clipBehavior: Clip.antiAlias,
-            child: _photoFile == null
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_a_photo_outlined,
-                          size: 40,
-                          color: theme.colorScheme.secondary
-                              .withValues(alpha: 0.5)),
-                      const SizedBox(height: 8),
-                      Text('اضغط لرفع صورة الوكالة',
-                          style: TextStyle(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.4))),
-                    ],
-                  )
-                : kIsWeb
-                    ? Image.network(_photoFile!.path, fit: BoxFit.cover)
-                    : Image.file(File(_photoFile!.path), fit: BoxFit.cover),
+            child: _uploadingPhoto
+                ? Center(child: CircularProgressIndicator(color: theme.colorScheme.secondary))
+                : _photoFile == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo_outlined,
+                              size: 40,
+                              color: theme.colorScheme.secondary
+                                  .withValues(alpha: 0.5)),
+                          const SizedBox(height: 8),
+                          Text('اضغط لرفع صورة الوكالة',
+                              style: TextStyle(
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.4))),
+                        ],
+                      )
+                    : kIsWeb
+                        ? Image.network(_photoFile!.path, fit: BoxFit.cover)
+                        : Image.file(File(_photoFile!.path), fit: BoxFit.cover),
           ),
         ],
       ),
@@ -258,7 +282,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
 
   Widget _buildIdCardPicker(ThemeData theme) {
     return InkWell(
-      onTap: _pickIdCard,
+      onTap: _uploadingIdCard ? null : _pickIdCard,
       child: Container(
         height: 120,
         width: double.infinity,
@@ -269,23 +293,25 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
               color: theme.colorScheme.secondary.withValues(alpha: 0.15)),
         ),
         clipBehavior: Clip.antiAlias,
-        child: _idCardFile == null
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.badge_outlined,
-                      size: 34,
-                      color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
-                  const SizedBox(height: 8),
-                  Text('اضغط لرفع صورة الهوية',
-                      style: TextStyle(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.4))),
-                ],
-              )
-            : kIsWeb
-                ? Image.network(_idCardFile!.path, fit: BoxFit.cover)
-                : Image.file(File(_idCardFile!.path), fit: BoxFit.cover),
+        child: _uploadingIdCard
+            ? Center(child: CircularProgressIndicator(color: theme.colorScheme.secondary))
+            : _idCardFile == null
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.badge_outlined,
+                          size: 34,
+                          color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
+                      const SizedBox(height: 8),
+                      Text('اضغط لرفع صورة الهوية',
+                          style: TextStyle(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.4))),
+                    ],
+                  )
+                : kIsWeb
+                    ? Image.network(_idCardFile!.path, fit: BoxFit.cover)
+                    : Image.file(File(_idCardFile!.path), fit: BoxFit.cover),
       ),
     );
   }
