@@ -243,7 +243,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               if (pending)
                 _buildStatus(theme,
                     icon: Icons.hourglass_top,
-                    color: Colors.amber,
+                    color: Colors.red,
                     title: 'انتظر، جاري الموافقة من قبل الإدارة',
                     subtitle: 'تم إرسال طلب فتح وكالتك، سيتم إشعارك فور الموافقة.')
               else if (approved)
@@ -304,12 +304,12 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                     if (created == true) controller.refresh();
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.secondary,
+                      backgroundColor: Colors.red,
                       minimumSize: const Size(double.infinity, 52)),
-                  icon: Icon(Icons.add_business, color: theme.colorScheme.onSecondary),
-                  label: Text('هل تريد فتح وكالة؟',
+                  icon: const Icon(Icons.add_business, color: Colors.white),
+                  label: const Text('هل تريد فتح وكالة؟',
                       style: TextStyle(
-                          color: theme.colorScheme.onSecondary,
+                          color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold)),
                 ),

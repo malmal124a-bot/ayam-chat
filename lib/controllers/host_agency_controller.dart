@@ -8,6 +8,7 @@ import '../services/supabase_service.dart';
 class HostAgencyController extends ChangeNotifier {
   final _client = Supabase.instance.client;
   RealtimeChannel? _agencySubscription;
+  RealtimeChannel? _openRequestSubscription;
 
   // Agency data
   Map<String, dynamic>? _agency;
@@ -134,6 +135,53 @@ class HostAgencyController extends ChangeNotifier {
               _joinRequests.clear();
               notifyListeners();
             }
+          },
+        )
+        .subscribe();
+  }
+
+  void _subscribeToOpenRequestChanges() {
+    _openRequestSubscription?.unsubscribe();
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null || _agency != null) return; // only listen if user has no agency
+
+    _openRequestSubscription = _client
+        .channel('agency_open_requests_$uid')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'agency_open_requests',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'requested_by',
+            value: uid,
+          ),
+          callback: (payload) async {
+            final newStatus = payload.newRecord['status']?.toString();
+            if (newStatus == 'approved') {
+              // Admin approved — reload everything to show the new agency
+              await _loadData();
+            } else if (newStatus == 'rejected') {
+              _openRequest = {
+                ...?_openRequest,
+                ...payload.newRecord,
+              };
+              notifyListeners();
+            }
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'agency_open_requests',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'requested_by',
+            value: uid,
+          ),
+          callback: (payload) async {
+            _openRequest = payload.newRecord as Map<String, dynamic>;
+            notifyListeners();
           },
         )
         .subscribe();
@@ -347,6 +395,7 @@ class HostAgencyController extends ChangeNotifier {
       }
 
       _subscribeToAgencyChanges();
+      _subscribeToOpenRequestChanges();
 
       // Owner loads pending withdrawal + leave requests for approval.
       if (_agency != null && isOwner) {
@@ -844,6 +893,7 @@ class HostAgencyController extends ChangeNotifier {
   @override
   void dispose() {
     _agencySubscription?.unsubscribe();
+    _openRequestSubscription?.unsubscribe();
     super.dispose();
   }
 }

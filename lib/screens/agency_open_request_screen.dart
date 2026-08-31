@@ -169,7 +169,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                 const SizedBox(height: 20),
                 _buildTextField(_nameController, 'اسم الوكالة', Icons.business),
                 const SizedBox(height: 12),
-                _buildTextField(_phoneController, 'رقم الهاتف', Icons.phone,
+                _buildTextField(_phoneController, 'رقم الواتساب', Icons.message,
                     keyboardType: TextInputType.phone),
                 const SizedBox(height: 12),
                 _buildTextField(_agencyIdController, 'آيدي الوكالة (الرقم)',
@@ -189,7 +189,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                         ? null
                         : () => _submit(context.read<HostAgencyController>()),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.secondary,
+                        backgroundColor: Colors.red,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14))),
                     child: _submitting
