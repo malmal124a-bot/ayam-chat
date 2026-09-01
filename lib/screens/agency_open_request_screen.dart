@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/host_agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../services/agency_api_service.dart';
@@ -66,6 +67,17 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
   }
 
   Future<void> _submit() async {
+    // Check if user is logged in
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('يرجى تسجيل الدخول أولاً'),
+            backgroundColor: Colors.red),
+      );
+      return;
+    }
+
     // Validate form fields
     if (!_formKey.currentState!.validate()) return;
 
@@ -143,8 +155,9 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
     } catch (e) {
       debugPrint('AgencyOpenRequest: submit error: $e');
       if (mounted) {
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
         );
       }
     } finally {
