@@ -408,17 +408,9 @@ class GiftController extends ChangeNotifier {
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
 
-      // AGENCY EARNINGS: A hosting-agency member's OWN gift-sends (including
-      // gifts sent to themselves) count toward their earnings/level. We credit
-      // the SENDER's hosting membership, not the receiver's.
-      final senderUid = SupabaseService.currentUserId ?? '';
-      if (senderUid.isNotEmpty) {
-        _processAgencyCommission(senderUid, total);
-      }
-      // RECEIVER EARNINGS: gifts received inside an agency also count toward
-      // the RECIPIENT's earnings ("أرباحي"), unless it's a self-gift (the
-      // sender was already credited above).
-      if (actualReceiverId.isNotEmpty && actualReceiverId != senderUid) {
+      // AGENCY EARNINGS: أرباح الهدايا داخل الوكالة تذهب للمستلم فقط (وليس
+      // المرسل). إذا أرسل الوكيل هدية لنفسه فهو يُعتبر المستلم فتصله الأرباح.
+      if (actualReceiverId.isNotEmpty) {
         _processAgencyCommission(actualReceiverId, total);
       }
     } catch (e) {
@@ -564,15 +556,23 @@ class GiftController extends ChangeNotifier {
           .from('host_profit_levels')
           .select('*')
           .order('sort_order');
-      int lvl = 0;
-      int target = 5000;
-      String? periodType = 'weekly';
+      if (levels.isEmpty) return;
+
+      // Base level/target from the first (lowest) configured level so the
+      // member always has a valid level reflecting the admin board — never 0.
+      int lvl = (levels.first['sort_order'] as num?)?.toInt() ?? 1;
+      int target = (levels.first['target'] as num?)?.toInt() ?? (lvl * 5000);
+      String? periodType = (levels.first['period_type'] as String?) ?? 'weekly';
+
+      // Upgrade through levels whose threshold the cumulative has reached.
+      // Target falls back to the backend convention (level * 5000) when the
+      // admin has not set an explicit per-level target.
       for (final l in levels) {
         final min = (l['min_cumulative_coins'] as num?)?.toInt() ?? 0;
         if (cumulative >= min) {
-          lvl = (l['sort_order'] as num?)?.toInt() ?? (lvl + 1);
-          target = (l['target'] as num?)?.toInt() ?? 5000;
-          periodType = (l['period_type'] as String?) ?? 'weekly';
+          lvl = (l['sort_order'] as num?)?.toInt() ?? lvl;
+          target = (l['target'] as num?)?.toInt() ?? (lvl * 5000);
+          periodType = (l['period_type'] as String?) ?? periodType;
         }
       }
 

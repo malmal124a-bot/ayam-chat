@@ -44,7 +44,17 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _controller.addListener(_onControllerUpdate);
+  }
+
+  /// When the "أرباحي" (earnings) tab is shown, reload fresh agency data so
+  /// the recomputed level/target (set by `_recomputeHostLevel`) is reflected.
+  void _onTabChanged() {
+    if (!mounted || !_tabController.indexIsChanging) return;
+    if (_tabController.index == 1) {
+      _controller.refresh();
+    }
   }
 
   bool _lastWasHosting = false;
@@ -61,6 +71,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         vsync: this,
         initialIndex: nowHosting && oldIndex >= 2 ? 0 : oldIndex,
       );
+      _tabController.addListener(_onTabChanged);
       setState(() {});
     }
   }
@@ -68,6 +79,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   @override
   void dispose() {
     _controller.removeListener(_onControllerUpdate);
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _transferTargetController.dispose();
     _transferAmountController.dispose();
