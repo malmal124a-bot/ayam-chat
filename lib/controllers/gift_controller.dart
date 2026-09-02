@@ -474,9 +474,11 @@ class GiftController extends ChangeNotifier {
     safeNotify();
   }
 
-  /// Credits the SENDER's hosting-agency membership with gift-send earnings.
-  /// Includes gifts the host sends to themselves. Also refreshes level/target
-  /// and refreshes the hosting agency screen.
+  /// Credits a hosting-agency member's earnings from a gift (the receiver).
+  /// Earnings = gift value × entry percent × the member's actual per-level
+  /// profit share, so the recorded/withdrawable profit reflects the real
+  /// achieved profit, not the full shipped/gift value. Also refreshes the
+  /// member's level/target.
   Future<void> _processAgencyCommission(String memberUserId, int giftValue) async {
     try {
       // 1. Find which hosting agency the sender belongs to
@@ -492,6 +494,7 @@ class GiftController extends ChangeNotifier {
 
       // 2. Get commission settings - per-agency first, fallback to global
       double giftEntryPercent = 100.0;
+      double hostProfitPercent = 100.0;
       try {
         final settings = await SupabaseService.client
             .from('agency_commission_settings')
@@ -500,23 +503,44 @@ class GiftController extends ChangeNotifier {
             .maybeSingle();
         if (settings != null) {
           giftEntryPercent = (settings['gift_entry_percent'] as num?)?.toDouble() ?? 100.0;
+          hostProfitPercent = (settings['host_profit_percent'] as num?)?.toDouble() ?? 100.0;
         } else {
           final globalSettings = await SupabaseService.client
               .from('commission_settings')
               .select('*')
-              .inFilter('key', ['gift_entry_percent']);
+              .inFilter('key', ['gift_entry_percent', 'host_profit_percent']);
           for (final gs in globalSettings) {
             if (gs['key'] == 'gift_entry_percent') {
               giftEntryPercent = (gs['value'] as num?)?.toDouble() ?? 100.0;
+            } else if (gs['key'] == 'host_profit_percent') {
+              hostProfitPercent = (gs['value'] as num?)?.toDouble() ?? 100.0;
             }
           }
         }
       } catch (_) {}
 
-      // 3. Host earnings from this gift (sender gets the full entry percent)
-      final hostEarnings = (giftValue * giftEntryPercent / 100).toInt();
+      // 3. Resolve the member's actual profit share = the per-level
+      //    profit_percent of their current level (from host_profit_levels),
+      //    so earnings are the real achieved profit — not the full shipped/gift
+      //    value. Falls back to the agency/global host_profit_percent.
+      int cumulative = 0;
+      try {
+        final memberRow = await SupabaseService.client
+            .from('host_agency_members')
+            .select('diamonds_earned_cumulative')
+            .eq('agency_id', agencyId)
+            .eq('user_id', memberUserId)
+            .maybeSingle();
+        cumulative = (memberRow?['diamonds_earned_cumulative'] as num?)?.toInt() ?? 0;
+      } catch (_) {}
 
-      // 4. Add earnings to the sender's host member record
+      final profitPercent = await _resolveHostProfitPercent(agencyId, cumulative) ?? hostProfitPercent;
+
+      // 4. Host earnings = gift value × entry percent × actual profit share.
+      final hostEarnings =
+          (giftValue * giftEntryPercent / 100 * profitPercent / 100).toInt();
+
+      // 5. Add earnings to the member's host record
       if (hostEarnings > 0) {
         try {
           final member = await SupabaseService.client
@@ -543,6 +567,29 @@ class GiftController extends ChangeNotifier {
       debugPrint('Host agency earnings credited: agency=$agencyId, member=$memberUserId, earnings=$hostEarnings');
     } catch (e) {
       debugPrint('Error processing agency earnings: $e');
+    }
+  }
+
+  /// Returns the profit_percent of the member's current level from
+  /// host_profit_levels (based on their cumulative earnings), or null if no
+  /// level is configured. Mirrors the level-resolution in _recomputeHostLevel.
+  Future<double?> _resolveHostProfitPercent(String agencyId, int cumulative) async {
+    try {
+      final levels = await SupabaseService.client
+          .from('host_profit_levels')
+          .select('*')
+          .order('sort_order');
+      if (levels.isEmpty) return null;
+      double? profit;
+      for (final l in levels) {
+        final min = (l['min_cumulative_coins'] as num?)?.toInt() ?? 0;
+        if (cumulative >= min) {
+          profit = (l['profit_percent'] as num?)?.toDouble();
+        }
+      }
+      return profit;
+    } catch (_) {
+      return null;
     }
   }
 
