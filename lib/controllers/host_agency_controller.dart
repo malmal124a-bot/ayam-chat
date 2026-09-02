@@ -231,7 +231,8 @@ class HostAgencyController extends ChangeNotifier {
         final membersData = await _client
             .from('host_agency_members')
             .select('*')
-            .eq('agency_id', agencyId);
+            .eq('agency_id', agencyId)
+            .eq('status', 'active');
 
         // Load user data separately for each member
         _members = [];

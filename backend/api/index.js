@@ -496,19 +496,19 @@ app.post('/api/admin/open-request/approve', async (req, res) => {
     const { request_id } = req.body;
     if (!request_id) return res.json({ ok: false, error: 'request_id required' });
 
-    const { data: req, error: rErr } = await supabase
+    const { data: row, error: rErr } = await supabase
       .from('agency_open_requests')
       .select('*')
       .eq('id', request_id)
       .single();
-    if (rErr || !req) return res.json({ ok: false, error: 'Request not found' });
-    if (req.status !== 'pending') return res.json({ ok: false, error: 'Already processed' });
+    if (rErr || !row) return res.json({ ok: false, error: 'Request not found' });
+    if (row.status !== 'pending') return res.json({ ok: false, error: 'Already processed' });
 
-    const numeric_id = String(req.agency_id || '');
+    const numeric_id = String(row.agency_id || '');
     const agencyId = `AG${numeric_id}`;
-    const name = req.agency_name || `وكالة ${numeric_id}`;
-    const ownerAuthId = req.requested_by;
-    const type = req.agency_type || 'hosting';
+    const name = row.agency_name || `وكالة ${numeric_id}`;
+    const ownerAuthId = row.requested_by;
+    const type = row.agency_type || 'hosting';
 
     // 1. Create agency (idempotent)
     const { data: existing } = await supabase.from('agencies').select('id').eq('id', agencyId).maybeSingle();
@@ -520,10 +520,10 @@ app.post('/api/admin/open-request/approve', async (req, res) => {
         owner_id: ownerAuthId,
         agency_type: type,
         description: `وكالة ${name}`,
-        photo_url: req.photo_url || '',
+        photo_url: row.photo_url || '',
         is_activated: true,
         personal_name: userRow?.name || '',
-        national_id: req.id_card_url || '',
+        national_id: row.id_card_url || '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -602,9 +602,9 @@ app.post('/api/admin/open-request/reject', async (req, res) => {
     const { request_id, note } = req.body;
     if (!request_id) return res.json({ ok: false, error: 'request_id required' });
 
-    const { data: req, error: rErr } = await supabase.from('agency_open_requests').select('*').eq('id', request_id).single();
-    if (rErr || !req) return res.json({ ok: false, error: 'Request not found' });
-    if (req.status !== 'pending') return res.json({ ok: false, error: 'Already processed' });
+    const { data: row, error: rErr } = await supabase.from('agency_open_requests').select('*').eq('id', request_id).single();
+    if (rErr || !row) return res.json({ ok: false, error: 'Request not found' });
+    if (row.status !== 'pending') return res.json({ ok: false, error: 'Already processed' });
 
     await supabase.from('agency_open_requests').update({
       status: 'rejected',
@@ -614,14 +614,14 @@ app.post('/api/admin/open-request/reject', async (req, res) => {
     }).eq('id', request_id);
 
     try {
-      const { data: targetUser } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', req.requested_by).maybeSingle();
-      const toNumeric = targetUser?.numeric_id || String(req.agency_id || '');
+      const { data: targetUser } = await supabase.from('users').select('name, numeric_id').eq('auth_uid', row.requested_by).maybeSingle();
+      const toNumeric = targetUser?.numeric_id || String(row.agency_id || '');
       await supabase.from('dm_messages').insert({
         from_user_id: 'system',
         to_user_id: toNumeric,
         from_name: 'النظام',
         to_name: targetUser?.name || toNumeric,
-        text: `تم رفض طلب فتح وكالة "${req.agency_name}".${note ? `\nالسبب: ${note}` : ''}\nيمكنك التواصل مع الإدارة للمزيد.`,
+        text: `تم رفض طلب فتح وكالة "${row.agency_name}".${note ? `\nالسبب: ${note}` : ''}\nيمكنك التواصل مع الإدارة للمزيد.`,
         is_read: false,
       });
     } catch (dmErr) { console.error('[REJECT-OPEN-REQUEST] DM failed:', dmErr.message); }

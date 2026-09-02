@@ -409,7 +409,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_agency_open_requests_user_pending
       const { data: members, error } = await supabase
         .from('host_agency_members')
         .select('*')
-        .eq('agency_id', agency_id);
+        .eq('agency_id', agency_id)
+        .eq('status', 'active');
 
       if (error) throw error;
       if (!members || members.length === 0) return res.json([]);
