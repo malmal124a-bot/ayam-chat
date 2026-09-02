@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import {
   HostAgencyModel, HostAgencyMemberModel, CommissionSettingModel,
   HostMilestoneModel, AgencyJoinRequestModel, AgencyLedgerEntryModel,
-  AgencyWithdrawalRequestModel,
+  AgencyWithdrawalRequestModel, AgencyOpenRequestModel,
 } from '../types';
 import {
   getHostAgencies, createHostAgency, updateHostAgency, deleteHostAgency, openAgencyForUser,
@@ -12,6 +12,7 @@ import {
   getHostAgencyJoinRequests, approveJoinRequest, rejectJoinRequest,
   updateAgencyMemberRole, removeAgencyMember,
   getAgencyLedger, getWithdrawalRequests, approveWithdrawal, rejectWithdrawal,
+  getAgencyOpenRequests, approveAgencyOpenRequest, rejectAgencyOpenRequest,
 } from '../lib/db';
 import { supabase, getAdminSupabase } from '../lib/supabase';
 
@@ -36,11 +37,11 @@ async function adminApi(path: string, body: Record<string, unknown> = {}) {
 }
 import { I18nContext } from '../lib/i18n';
 import DataTable from '../components/DataTable';
-import { Handshake, Users, UserPlus, Wallet, Target, Settings, CreditCard, ArrowDownToLine } from 'lucide-react';
+import { Handshake, Users, UserPlus, Wallet, Target, Settings, CreditCard, ArrowDownToLine, FilePlus } from 'lucide-react';
 
 const tabs = [
   { key: 'agencies', labelKey: 'agency.agencies', icon: Handshake },
-  { key: 'members', labelKey: 'agency.members', icon: Users },
+    { key: 'open_requests', label: 'طلبات فتح وكالة', icon: FilePlus },{ key: 'members', labelKey: 'agency.members', icon: Users },
   { key: 'join_requests', labelKey: 'agency.joinRequests', icon: UserPlus },
   { key: 'financial', labelKey: 'agency.financial', icon: Wallet },
   { key: 'milestones', labelKey: 'agency.milestones', icon: Target },
@@ -72,6 +73,7 @@ export default function AgencyPage() {
         ))}
       </div>
       {tab === 'agencies' && <AgenciesTab />}
+      {tab === 'open_requests' && <OpenRequestsTab />}
       {tab === 'members' && <MembersTab />}
       {tab === 'join_requests' && <JoinRequestsTab />}
       {tab === 'financial' && <FinancialTab />}
@@ -1380,6 +1382,205 @@ function TopupRequestsTab() {
                       className="text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-3 py-1 rounded-lg font-semibold">موافقة</button>
                     <button onClick={() => handleReject(r.id)}
                       className="text-[10px] bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 px-3 py-1 rounded-lg font-semibold">رفض</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =============================================================
+   OPEN AGENCY REQUESTS TAB - طلبات فتح الوكالات من المستخدمين
+   ============================================================= */
+function OpenRequestsTab() {
+  const [requests, setRequests] = useState<AgencyOpenRequestModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('pending');
+  const [rejectNote, setRejectNote] = useState('');
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; msg: string; agency_id?: string; email?: string; password?: string } | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const data = await getAgencyOpenRequests(filter);
+    setRequests(data || []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, [filter]);
+
+  const handleApprove = async (id: string) => {
+    if (!confirm('هل أنت متأكد من الموافقة على فتح هذه الوكالة؟ سيتم إنشاء حساب لوحة التحكم تلقائياً.')) return;
+    setResult(null);
+    // إزالة الطلب محلياً من القائمة فوراً لعدم ظهوره أثناء انتظار الرد
+    setRequests(prev => prev.filter(r => r.id !== id));
+    const res = await approveAgencyOpenRequest(id);
+    if (res.ok) {
+      setResult({
+        ok: true,
+        msg: '🎉 تمت الموافقة على فتح الوكالة بنجاح! أرسل هذه البيانات للمستخدم:',
+        agency_id: res.agency_id,
+        email: res.email,
+        password: res.password,
+      });
+    } else {
+      // إعادة إضافة الطلب في حال فشل العملية
+      load();
+      setResult({ ok: false, msg: '❌ فشل الموافقة: ' + (res.error || 'خطأ غير معروف') });
+    }
+  };
+
+  const openRejectDialog = (id: string) => {
+    setRejectingId(id);
+    setRejectNote('');
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingId) return;
+    // إزالة الطلب محلياً أولاً
+    const currentRejectingId = rejectingId;
+    setRequests(prev => prev.filter(r => r.id !== currentRejectingId));
+    setRejectingId(null);
+    const res = await rejectAgencyOpenRequest(currentRejectingId, rejectNote);
+    if (res.ok) {
+      setResult({ ok: true, msg: '✅ تم رفض الطلب بنجاح' });
+    } else {
+      // فشل: نعيد تحميل القائمة لأصل الحالة
+      load();
+      setResult({ ok: false, msg: '❌ فشل الرفض: ' + (res.error || 'خطأ غير معروف') });
+    }
+    setRejectNote('');
+  };
+
+  const agencyTypeLabels: Record<string, string> = {
+    shipping: 'شحن ماس',
+    hosting: 'استضافة',
+    mixed: 'مختلط',
+  };
+  const statusColors: Record<string, string> = {
+    pending: 'bg-amber-500/10 text-amber-400',
+    approved: 'bg-emerald-500/10 text-emerald-400',
+    rejected: 'bg-rose-500/10 text-rose-400',
+  };
+  const statusLabels: Record<string, string> = {
+    pending: 'قيد المراجعة',
+    approved: 'تمت الموافقة',
+    rejected: 'مرفوض',
+  };
+
+  return (
+    <div className="space-y-4">
+      {result && (
+        <div className={`p-3 rounded-lg text-xs border ${result.ok ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'}`}>
+          <div className="space-y-1">
+            <p className="font-semibold">{result.msg}</p>
+            {result.agency_id && (
+              <>
+                <p>رقم الوكالة: <span className="text-white font-mono">{result.agency_id}</span></p>
+                {result.email && <p>البريد: <span className="text-white font-mono">{result.email}</span></p>}
+                {result.password && <p>كلمة المرور: <span className="text-white font-mono">{result.password}</span></p>}
+              
+                 <a href={`${AGENCY_DASH_URL}#agency_id=${result.agency_id}&email=${result.email}&password=${result.password}`} target="_blank" rel="noreferrer"
+                   className="mt-2 inline-block text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold">
+                   فتح لوحة تحكم الوكالة ↗
+                 </a></>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <p className="text-slate-500 text-xs">{requests.length} طلب</p>
+        <select value={filter} onChange={e => setFilter(e.target.value)}
+          className="bg-[#161618] border border-white/10 rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none focus:border-indigo-500">
+          <option value="pending">قيد المراجعة فقط</option>
+          <option value="approved">تمت الموافقة</option>
+          <option value="rejected">مرفوض</option>
+          <option value="">الكل</option>
+        </select>
+      </div>
+
+      {rejectingId && (
+        <div className="bg-[#141417] rounded-2xl border border-rose-500/30 p-4 space-y-3">
+          <p className="text-rose-400 text-xs font-semibold">سبب الرفض (اختياري)</p>
+          <textarea value={rejectNote} onChange={e => setRejectNote(e.target.value)}
+            placeholder="اكتب سبب الرفض هنا..."
+            rows={3}
+            className="w-full bg-[#161618] border border-white/10 rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none focus:border-rose-500 placeholder:text-slate-600 resize-none" />
+          <div className="flex gap-2">
+            <button onClick={handleRejectConfirm}
+              className="text-xs bg-rose-500 hover:bg-rose-600 text-white px-4 py-1.5 rounded-lg font-semibold">تأكيد الرفض</button>
+            <button onClick={() => setRejectingId(null)}
+              className="text-xs bg-slate-600 hover:bg-slate-500 text-white px-4 py-1.5 rounded-lg">إلغاء</button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-slate-500 text-xs text-center py-12">جاري تحميل الطلبات...</p>
+      ) : requests.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-slate-600 text-sm">لا توجد طلبات {filter === 'pending' ? 'قيد المراجعة' : filter === 'approved' ? 'مقبولة' : filter === 'rejected' ? 'مرفوضة' : ''}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {requests.map(r => (
+            <div key={r.id} className="bg-[#141417] rounded-2xl border border-white/5 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 flex-1">
+                  {r.requester?.photo_url ? (
+                    <img src={r.requester.photo_url} alt="" className="w-10 h-10 rounded-full object-cover border border-white/20 flex-shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-indigo-500/30 flex items-center justify-center text-xs text-indigo-300 font-bold flex-shrink-0">
+                      {(r.requester?.name || r.agency_name || '?')[0]}
+                    </div>
+                  )}
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-white text-sm font-semibold">{r.agency_name}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${statusColors[r.status]}`}>{statusLabels[r.status]}</span>
+                      {r.agency_type && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400">
+                          {agencyTypeLabels[r.agency_type] || r.agency_type}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="text-[11px] text-cyan-400 font-mono">
+                        مطلوب من: {r.requester?.numeric_id || r.requester?.name || r.requested_by?.slice(0, 10)}
+                      </p>
+                      {r.phone && <p className="text-[11px] text-slate-400">📱 {r.phone}</p>}
+                    </div>
+                    <div className="flex gap-3 mt-2">
+                      {r.photo_url && (
+                        <a href={r.photo_url} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-400 hover:text-indigo-300">
+                          🖼️ صورة شخصية
+                        </a>
+                      )}
+                      {r.id_card_url && (
+                        <a href={r.id_card_url} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-400 hover:text-indigo-300">
+                          🆔 هوية وطنية
+                        </a>
+                      )}
+                    </div>
+                    {r.note && <p className="text-[10px] text-slate-500 mt-1">ملاحظة: {r.note}</p>}
+                    <p className="text-[10px] text-slate-600">{new Date(r.created_at).toLocaleString('ar')}</p>
+                  </div>
+                </div>
+
+                {r.status === 'pending' && !rejectingId && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={() => handleApprove(r.id)}
+                      className="text-[11px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                      موافقة وفتح
+                    </button>
+                    <button onClick={() => openRejectDialog(r.id)}
+                      className="text-[11px] bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                      رفض
+                    </button>
                   </div>
                 )}
               </div>

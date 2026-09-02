@@ -930,7 +930,7 @@ export async function getAgencyOpenRequests(status: string = 'pending') {
   } catch { return [] }
 }
 
-export async function approveAgencyOpenRequest(requestId: string): Promise<{ ok: boolean; error?: string }> {
+export async function approveAgencyOpenRequest(requestId: string): Promise<{ ok: boolean; error?: string; agency_id?: string; email?: string; password?: string; dashboard_url?: string }> {
   try {
     const BACKEND_URL = 'https://backend-seven-brown-72.vercel.app';
     let token = 'ayam-admin';
@@ -944,7 +944,16 @@ export async function approveAgencyOpenRequest(requestId: string): Promise<{ ok:
       body: JSON.stringify({ request_id: requestId }),
     });
     const data = await resp.json();
-    return data.ok === false ? { ok: false, error: data.error || 'فشل الموافقة' } : { ok: true };
+    if (data.ok === false) {
+      return { ok: false, error: data.error || 'فشل الموافقة' };
+    }
+    return {
+      ok: true,
+      agency_id: data.agency_id,
+      email: data.dashboard_email || data.email,
+      password: data.dashboard_password || data.password,
+      dashboard_url: data.dashboard_url,
+    };
   } catch (e: any) { return { ok: false, error: e.message }; }
 }
 

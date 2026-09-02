@@ -548,6 +548,27 @@ export interface AgencyWithdrawalRequestModel {
   agency_name?: string;
   created_at: string;
 }
+export interface AgencyOpenRequestModel {
+  id: string;
+  requested_by: string;
+  agency_name: string;
+  phone?: string;
+  agency_id?: string;
+  photo_url?: string;
+  id_card_url?: string;
+  agency_type?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  created_at: string;
+  updated_at?: string;
+  requester?: {
+    numeric_id?: string;
+    name?: string;
+    photo_url?: string;
+  };
+}
 
 export interface AgencyDetailModel extends HostAgencyModel {
   owner_name: string;
