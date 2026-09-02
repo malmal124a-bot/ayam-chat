@@ -415,6 +415,12 @@ class GiftController extends ChangeNotifier {
       if (senderUid.isNotEmpty) {
         _processAgencyCommission(senderUid, total);
       }
+      // RECEIVER EARNINGS: gifts received inside an agency also count toward
+      // the RECIPIENT's earnings ("أرباحي"), unless it's a self-gift (the
+      // sender was already credited above).
+      if (actualReceiverId.isNotEmpty && actualReceiverId != senderUid) {
+        _processAgencyCommission(actualReceiverId, total);
+      }
     } catch (e) {
       debugPrint('GiftController: error persisting gift: $e');
     }
