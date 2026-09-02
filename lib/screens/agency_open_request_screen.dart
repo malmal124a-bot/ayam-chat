@@ -5,13 +5,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/host_agency_controller.dart';
-import '../controllers/user_controller.dart';
-import '../services/agency_api_service.dart';
 import '../services/cloudinary_service.dart';
 
 /// "فتح وكالة" form — a user submits their own hosting-agency open request.
 /// Fields: agency photo, agency name, agency ID (numeric), WhatsApp number,
 /// ID card upload. On submit the request goes to the admin for approval.
+/// Submits directly to Supabase (bypasses backend API auth issues).
 class AgencyOpenRequestScreen extends StatefulWidget {
   const AgencyOpenRequestScreen({super.key});
 
@@ -33,6 +32,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
   bool _uploadingIdCard = false;
 
   final ImagePicker _picker = ImagePicker();
+  final _supabase = Supabase.instance.client;
 
   @override
   void dispose() {
@@ -68,8 +68,9 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
 
   Future<void> _submit() async {
     // Check if user is logged in
-    final session = Supabase.instance.client.auth.currentSession;
+    final session = _supabase.auth.currentSession;
     if (session == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('يرجى تسجيل الدخول أولاً'),
@@ -94,7 +95,6 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
     setState(() => _submitting = true);
 
     try {
-      // Get agency ID from the text field
       final agencyId = _agencyIdController.text.trim();
       if (agencyId.isEmpty) {
         setState(() => _submitting = false);
@@ -113,44 +113,52 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
       });
 
       final photoUrl = await _uploadImage(_photoFile!, 'agency_photo');
-      setState(() => _uploadingPhoto = false);
+      if (mounted) setState(() => _uploadingPhoto = false);
 
       final idCardUrl = await _uploadImage(_idCardFile!, 'id_card');
-      setState(() => _uploadingIdCard = false);
+      if (mounted) setState(() => _uploadingIdCard = false);
 
       if (!mounted) return;
 
-      // Submit the open request directly via API
-      final result = await AgencyApiService().submitOpenRequest(
-        agencyName: _nameController.text.trim(),
-        agencyId: agencyId,
-        phone: _phoneController.text.trim(),
-        photoUrl: photoUrl ?? '',
-        idCardUrl: idCardUrl ?? '',
-      );
+      // Submit directly to Supabase (bypasses backend API)
+      final uid = session.user.id;
+      try {
+        final data = await _supabase
+            .from('agency_open_requests')
+            .insert({
+              'requested_by': uid,
+              'agency_name': _nameController.text.trim(),
+              'agency_id': agencyId,
+              'phone': _phoneController.text.trim(),
+              'photo_url': photoUrl ?? '',
+              'id_card_url': idCardUrl ?? '',
+              'agency_type': 'hosting',
+              'status': 'pending',
+            })
+            .select()
+            .single();
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      final bool ok = result['ok'] == true;
-      final String message = result['ok'] == true
-          ? 'تم إرسال طلبك بنجاح، جاري مراجعة الإدارة'
-          : (result['error']?.toString() ?? 'حدث خطأ، حاول مرة أخرى');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('تم إرسال طلبك بنجاح، جاري مراجعة الإدارة'),
+              backgroundColor: Colors.green),
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: ok ? Colors.green : Colors.red),
-      );
-
-      if (ok) {
-        // Also refresh the controller so the pending status shows
+        // Refresh the controller so the pending status shows
         try {
-          if (mounted) {
-            context.read<HostAgencyController>().refresh();
-          }
+          if (mounted) context.read<HostAgencyController>().refresh();
         } catch (_) {}
 
-        if (mounted) {
-          Navigator.of(context).pop(true);
-        }
+        if (mounted) Navigator.of(context).pop(true);
+      } catch (dbError) {
+        if (!mounted) return;
+        final errMsg = dbError.toString().replaceAll(RegExp(r'Exception: |PostgrestException: '), '');
+        debugPrint('AgencyOpenRequest: Supabase insert error: $dbError');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errMsg), backgroundColor: Colors.red),
+        );
       }
     } catch (e) {
       debugPrint('AgencyOpenRequest: submit error: $e');
