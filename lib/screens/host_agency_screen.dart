@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/host_agency_controller.dart';
@@ -117,6 +118,9 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
             body: Column(
               children: [
                 _buildAgencyHeader(theme, controller),
+                if (controller.isOwner &&
+                    !_isHosting)
+                  _buildShippingPanel(controller),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
@@ -564,6 +568,184 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         Text(value, style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16)),
         Text(label, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 10)),
       ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // SHIPPING PANEL (الشحن والرواتب) - for shipping/mixed agency owners
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildShippingPanel(HostAgencyController controller) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _showRechargeDialog(context, controller),
+              icon: const Icon(Icons.local_shipping_outlined, size: 18),
+              label: const Text('شحن مستخدم',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _showSalariesDialog(context, controller),
+              icon: const Icon(Icons.payments_outlined, size: 18),
+              label: const Text('صرف الرواتب',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRechargeDialog(
+      BuildContext context, HostAgencyController controller) async {
+    final theme = Theme.of(context);
+    final idCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+    final isWeb = kIsWeb;
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: theme.cardColor,
+          title: Text('شحن مستخدم من الوكالة',
+              style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: idCtrl,
+                  keyboardType:
+                      isWeb ? null : TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'آيدي المستخدم (الرقم)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountCtrl,
+                  keyboardType: isWeb ? null : TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'عدد الماس'),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'سيتم خصم نفس العدد من رصيد الوكالة وإضافته للمستخدم',
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: () async {
+                final id = idCtrl.text.trim();
+                final amount = int.tryParse(amountCtrl.text.trim()) ?? 0;
+                if (id.isEmpty || amount <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('يرجى إدخال الآيدي وعدد الماس'),
+                        backgroundColor: Colors.orange));
+                  return;
+                }
+                Navigator.pop(ctx);
+                final result = await controller.rechargeUser(id, amount);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(result['message']),
+                        backgroundColor: result['ok'] == true
+                            ? Colors.green
+                            : Colors.red),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
+              child: const Text('شحن الآن'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showSalariesDialog(
+      BuildContext context, HostAgencyController controller) async {
+    final theme = Theme.of(context);
+    final memberIds =
+        controller.members.map((m) => m['auth_uid'].toString()).toList();
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: theme.cardColor,
+          title: Text('صرف الرواتب',
+              style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('عدد الأعضاء: ${controller.members.length}'),
+              const SizedBox(height: 6),
+              Text(
+                'سيتم احتساب وصرف رواتب جميع أعضاء الوكالة لهذه الدورة',
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    fontSize: 11),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                if (memberIds.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('لا يوجد أعضاء لصرف رواتبهم'),
+                        backgroundColor: Colors.orange));
+                  return;
+                }
+                final result = await controller.paySalaries(memberIds);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(result['message']),
+                        backgroundColor: result['ok'] == true
+                            ? Colors.green
+                            : Colors.red),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade600),
+              child: const Text('صرف الآن'),
+            ),
+          ],
+        );
+      },
     );
   }
 

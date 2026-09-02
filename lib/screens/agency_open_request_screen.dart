@@ -30,6 +30,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
   bool _submitting = false;
   bool _uploadingPhoto = false;
   bool _uploadingIdCard = false;
+  String _agencyType = 'shipping'; // shipping | hosting | mixed
 
   final ImagePicker _picker = ImagePicker();
   final _supabase = Supabase.instance.client;
@@ -132,7 +133,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
               'phone': _phoneController.text.trim(),
               'photo_url': photoUrl ?? '',
               'id_card_url': idCardUrl ?? '',
-              'agency_type': 'hosting',
+              'agency_type': _agencyType,
               'status': 'pending',
             })
             .select()
@@ -179,7 +180,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('فتح وكالة مضيفين',
+        title: Text('فتح وكالة',
             style: TextStyle(
                 color: theme.colorScheme.secondary,
                 fontWeight: FontWeight.bold)),
@@ -212,6 +213,8 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                 const SizedBox(height: 20),
                 _buildPhotoPicker(theme),
                 const SizedBox(height: 20),
+                _buildTypeSelector(theme),
+                const SizedBox(height: 16),
                 _buildTextField(_nameController, 'اسم الوكالة', Icons.business),
                 const SizedBox(height: 12),
                 _buildTextField(_phoneController, 'رقم الواتساب', Icons.message,
@@ -257,6 +260,80 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTypeSelector(ThemeData theme) {
+    const options = [
+      ('shipping', '🚚 وكالة شحن ماس', 'ترسل الشحنات والرواتب للمستخدمين'),
+      ('hosting', '🏠 وكالة استضافة', 'تستضيف الأعضاء وكسب الأرباح معهم'),
+      ('mixed', '🔀 مختلطة', 'شحن + استضافة معاً'),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('نوع الوكالة',
+            style: TextStyle(
+                color: theme.colorScheme.secondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600)),
+        const SizedBox(height: 10),
+        ...options.map((o) {
+          final selected = _agencyType == o.$1;
+          return GestureDetector(
+            onTap: () => setState(() => _agencyType = o.$1),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: selected
+                    ? theme.colorScheme.secondary.withValues(alpha: 0.12)
+                    : theme.cardColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected
+                      ? theme.colorScheme.secondary
+                      : theme.colorScheme.secondary.withValues(alpha: 0.18),
+                  width: selected ? 1.6 : 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(o.$1 == 'shipping' ? Icons.local_shipping_outlined
+                      : o.$1 == 'hosting' ? Icons.house_outlined : Icons.sync_alt,
+                      color: selected
+                          ? theme.colorScheme.secondary
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(o.$2,
+                            style: TextStyle(
+                                color: selected
+                                    ? theme.colorScheme.secondary
+                                    : theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13)),
+                        const SizedBox(height: 2),
+                        Text(o.$3,
+                            style: TextStyle(
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.45),
+                                fontSize: 10)),
+                      ],
+                    ),
+                  ),
+                  if (selected)
+                    Icon(Icons.check_circle,
+                        color: theme.colorScheme.secondary, size: 20),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
     );
   }
 

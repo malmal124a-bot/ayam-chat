@@ -692,6 +692,85 @@ class HostAgencyController extends ChangeNotifier {
     await _loadData();
   }
 
+  /// Send diamonds (shipment) to a user from this agency's wallet.
+  /// The target is identified by their numeric id. `diamonds` is what the user
+  /// receives; `cost` (default = diamonds) is what is deducted from the wallet.
+  Future<Map<String, dynamic>> rechargeUser(
+      String targetNumericId, int diamonds, {int? cost}) async {
+    final agencyId = _agency?['id'] as String?;
+    if (agencyId == null) return {'ok': false, 'message': 'لا توجد وكالة'};
+    if (targetNumericId.trim().isEmpty || diamonds <= 0) {
+      return {'ok': false, 'message': 'يرجى إدخال آيدي المستخدم وعدد الماس'};
+    }
+    final costDiamonds = (cost ?? diamonds) <= 0 ? diamonds : (cost ?? diamonds);
+    try {
+      // Resolve the target user's auth_uid from their numeric id
+      final target = await _client
+          .from('users')
+          .select('auth_uid')
+          .eq('numeric_id', targetNumericId.trim())
+          .maybeSingle();
+      if (target == null) {
+        return {'ok': false, 'message': 'المستخدم غير موجود'};
+      }
+      final result = await AgencyApiService().recharge(
+        agencyId: agencyId,
+        targetUserId: target['auth_uid'],
+        targetNumericId: targetNumericId.trim(),
+        diamonds: diamonds,
+        costDiamonds: costDiamonds,
+      );
+      if (result['ok'] == true) {
+        await _loadData();
+        return {
+          'ok': true,
+          'message':
+              'تم شحن ${result['diamonds_charged'] ?? diamonds} ماس للمستخدم',
+        };
+      }
+      return {'ok': false, 'message': result['error'] ?? 'فشل الشحن'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
+  /// Record/pay salaries for a shipping agency (full run). Calculates a salary
+  /// run for the given members, then pays all items in the run.
+  Future<Map<String, dynamic>> paySalaries(List<String> memberUserIds) async {
+    final agencyId = _agency?['id'] as String?;
+    if (agencyId == null) return {'ok': false, 'message': 'لا توجد وكالة'};
+    if (memberUserIds.isEmpty) {
+      return {'ok': false, 'message': 'لا يوجد أعضاء لصرف رواتبهم'};
+    }
+    try {
+      // 1. Calculate the salary run
+      final calc = await AgencyApiService().calculateSalary(
+        agencyId: agencyId,
+        userIds: memberUserIds,
+      );
+      if (calc['ok'] == false || calc['data'] == null) {
+        return {'ok': false, 'message': calc['error'] ?? 'فشل حساب الرواتب'};
+      }
+      final run = (calc['data'] ?? calc) as Map<String, dynamic>;
+      final runId = run['id'] ?? run['run_id'];
+      if (runId == null) {
+        return {'ok': false, 'message': 'تعذر إنشاء جولة الرواتب'};
+      }
+      // 2. Pay all items in the run
+      final pay = await AgencyApiService().payAllSalaries(
+        runId: runId,
+        agencyId: agencyId,
+      );
+      if (pay['ok'] == true) {
+        await _loadData();
+        return {'ok': true, 'message': 'تم صرف الرواتب بنجاح'};
+      }
+      return {'ok': false, 'message': pay['error'] ?? 'فشل صرف الرواتب'};
+    } catch (e) {
+      return {'ok': false, 'message': 'خطأ: $e'};
+    }
+  }
+
   /// Invite another user (by numeric id) to join this agency. The backend
   /// sends them a notification (DM) with the agency & agent name; they can
   /// accept or reject from their agency screen.
