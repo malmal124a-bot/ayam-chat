@@ -995,6 +995,8 @@ interface ProfitLevel {
   level_name: string;
   min_cumulative_coins: number;
   profit_percent: number;
+  target: number;
+  period_type: string;
   sort_order: number;
   is_active: boolean;
 }
@@ -1017,6 +1019,8 @@ function ProfitLevelsTab() {
       id: level.id, level_name: level.level_name,
       min_cumulative_coins: level.min_cumulative_coins,
       profit_percent: level.profit_percent,
+      target: level.target,
+      period_type: level.period_type,
       sort_order: level.sort_order, is_active: level.is_active,
     }, { onConflict: 'id' });
     setEdit(null);
@@ -1029,6 +1033,8 @@ function ProfitLevelsTab() {
       level_name: 'مستوى جديد',
       min_cumulative_coins: 0,
       profit_percent: 50,
+      target: 5000,
+      period_type: 'weekly',
       sort_order: levels.length + 1,
       is_active: true,
     };
@@ -1061,6 +1067,8 @@ function ProfitLevelsTab() {
               <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">اسم المستوى</th>
               <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">الحد الأدنى (كوينز)</th>
               <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">نسبة الربح (%)</th>
+              <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">الهدف</th>
+              <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">الفترة</th>
               <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">الترتيب</th>
               <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">نشط</th>
               <th className="text-left text-[10px] uppercase tracking-wider text-slate-500 font-bold p-3">إجراءات</th>
@@ -1077,6 +1085,16 @@ function ProfitLevelsTab() {
                       className="w-full bg-[#161618] border border-white/10 rounded py-1 px-2 text-xs text-white" /></td>
                     <td className="p-2"><input type="number" value={edit.profit_percent} onChange={e => setEdit({ ...edit, profit_percent: parseInt(e.target.value) || 0 })}
                       className="w-full bg-[#161618] border border-white/10 rounded py-1 px-2 text-xs text-white" /></td>
+                    <td className="p-2"><input type="number" value={edit.target} onChange={e => setEdit({ ...edit, target: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-[#161618] border border-white/10 rounded py-1 px-2 text-xs text-white" /></td>
+                    <td className="p-2">
+                      <select value={edit.period_type} onChange={e => setEdit({ ...edit, period_type: e.target.value })}
+                        className="w-full bg-[#161618] border border-white/10 rounded py-1 px-2 text-xs text-white">
+                        <option value="weekly">أسبوعي</option>
+                        <option value="monthly">شهري</option>
+                        <option value="all_time">دائم</option>
+                      </select>
+                    </td>
                     <td className="p-2"><input type="number" value={edit.sort_order} onChange={e => setEdit({ ...edit, sort_order: parseInt(e.target.value) || 0 })}
                       className="w-full bg-[#161618] border border-white/10 rounded py-1 px-2 text-xs text-white" /></td>
                     <td className="p-2">
@@ -1090,6 +1108,8 @@ function ProfitLevelsTab() {
                     <td className="p-3 text-white font-semibold">{lv.level_name}</td>
                     <td className="p-3 text-cyan-400">{lv.min_cumulative_coins.toLocaleString()}</td>
                     <td className="p-3 text-amber-400">{lv.profit_percent}%</td>
+                    <td className="p-3 text-cyan-300">{(lv.target ?? 0).toLocaleString()}</td>
+                    <td className="p-3 text-slate-400">{lv.period_type || 'weekly'}</td>
                     <td className="p-3 text-slate-400">{lv.sort_order}</td>
                     <td className="p-3">
                       <span className={lv.is_active ? 'text-emerald-400' : 'text-rose-400'}>

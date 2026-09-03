@@ -783,26 +783,119 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
   }
 
   // ═══════════════════════════════════════════════════════════════
+  // AGENCY LEVEL SUMMARY CARD (owner view) - aggregated profit level,
+  // total earnings, withdrawal balance and average member progress.
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildAgencyLevelCard(HostAgencyController controller, ThemeData theme) {
+    final avgProgress = controller.agencyMemberCount == 0
+        ? 0.0
+        : (controller.members.fold<double>(0, (s, m) {
+              final t = ((m['target'] ?? 5000) as num).toDouble();
+              final e = ((m['earnings'] ?? m['monthly_earnings'] ?? 0) as num).toDouble();
+              final p = t <= 0 ? 0.0 : (e / t).clamp(0.0, 1.0);
+              return s + p;
+            }) /
+            controller.agencyMemberCount);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.secondary.withValues(alpha: 0.22),
+            theme.cardColor,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('مستوى أرباح الوكالة', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('المستوى ${controller.agencyLevelNumber}',
+                    style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildMemberStat('📈', '${controller.agencyMonthlyEarnings}/شهر', theme),
+              const SizedBox(width: 8),
+              _buildMemberStat('👥', '${controller.agencyMemberCount} عضو', theme),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('التارجت: ${controller.agencyTarget}', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+              Text('المحقق: ${controller.agencyTotalEarnings}', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: controller.agencyTargetProgress,
+              minHeight: 10,
+              backgroundColor: theme.scaffoldBackgroundColor,
+              color: theme.colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${(controller.agencyTargetProgress * 100).toStringAsFixed(0)}% من التارجت',
+                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 10)),
+              Text('متوسط إنجاز الأعضاء ${(avgProgress * 100).toStringAsFixed(0)}%',
+                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 10)),
+            ],
+          ),
+          if (controller.agencyProfitPercent != null) ...[
+            const SizedBox(height: 10),
+            Text('نسبة ربح المستوى الحالي: ${controller.agencyProfitPercent!.toStringAsFixed(0)}%',
+                style: TextStyle(color: theme.colorScheme.secondary, fontSize: 12, fontWeight: FontWeight.w600)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // MEMBERS TAB
   // ═══════════════════════════════════════════════════════════════
   Widget _buildMembersTab(HostAgencyController controller) {
     final theme = Theme.of(context);
-    if (controller.members.isEmpty && !controller.isOwner) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.people_outline, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text('لا يوجد أعضاء', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
-          ],
-        ),
-      );
-    }
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
+        // Non-owners see incoming join invites (accept/decline) and the list
+        // of open agencies on the system, even when they already belong to
+        // another agency.
+        if (!controller.isOwner) ...[
+          ..._buildIncomingInvites(theme, controller),
+          if (controller.incomingInvites.isNotEmpty) const SizedBox(height: 12),
+          _buildOpenAgenciesList(theme, controller),
+          const SizedBox(height: 12),
+        ],
+        if (controller.isOwner) _buildAgencyLevelCard(controller, theme),
+        if (controller.isOwner) const SizedBox(height: 12),
         if (controller.isOwner) _buildInviteCard(theme, controller),
         if (controller.isOwner) const SizedBox(height: 12),
         if (controller.members.isEmpty)
@@ -818,6 +911,173 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           )
         else
           ...controller.members.map((m) => _buildMemberCard(m, theme, controller)),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // TARGET LEVELS SECTION - shows all profit levels with a golden
+  // progress bar. Advances as the member receives gift earnings
+  // (diamonds_earned_cumulative). Completed levels are marked ✓.
+  // ═══════════════════════════════════════════════════════════════
+  Widget _buildTargetLevelsSection(HostAgencyController controller, ThemeData theme) {
+    const golden = Color(0xFFFFD700);
+    final levels = controller.profitLevels;
+    final earnings = controller.myCumulativeEarnings;
+
+    // Resolve the total target (sum of all level targets) for the
+    // "accumulated / total" readout.
+    final totalTarget = levels.fold<int>(0, (s, l) => s + (((l['target'] as num?)?.toInt() ?? 0)));
+    // Sum of targets the user has already fully completed.
+    final accumulated = levels
+        .where((l) => earnings >= ((l['target'] as num?)?.toInt() ?? 0))
+        .fold<int>(0, (s, l) => s + (((l['target'] as num?)?.toInt() ?? 0)));
+
+    // The current active level = the highest reached level whose target is
+    // NOT yet completed. If none, the user is on the first unfinished level.
+    int activeIndex = 0;
+    int? activeIdx;
+    for (var i = 0; i < levels.length; i++) {
+      final lv = levels[i];
+      final min = (lv['min_cumulative_coins'] as num?)?.toInt() ?? 0;
+      if (earnings >= min) {
+        activeIndex = i;
+        final target = (lv['target'] as num?)?.toInt() ?? 0;
+        if (earnings < target) activeIdx = i;
+      }
+    }
+    activeIdx ??= activeIndex;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [golden.withValues(alpha: 0.18), theme.cardColor]),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: golden.withValues(alpha: 0.35)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('مستويات الترجت', style: TextStyle(color: golden, fontWeight: FontWeight.bold, fontSize: 15)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: golden.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
+                    child: Text('المستوى ${controller.myLevel}',
+                        style: TextStyle(color: golden, fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text('الهدايا المجمعة: ${earnings}',
+                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13)),
+              const SizedBox(height: 4),
+              Text('الأهداف المجمعة: $accumulated من $totalTarget',
+                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
+              const SizedBox(height: 12),
+              Text('عند استلام هدية يتقدم شريط مستوى الهدف، وعند اكتمال الهدف تنتقل للمستوى التالي.',
+                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 11)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (levels.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(12)),
+            child: Text('لا توجد مستويات أهداف محددة بعد.',
+                style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
+          )
+        else
+          ...levels.asMap().entries.map((entry) {
+            final i = entry.key;
+            final lv = entry.value;
+            final target = (lv['target'] as num?)?.toInt() ?? 0;
+            final isActive = i == activeIdx;
+            final isCompleted = target > 0 && earnings >= target;
+            final fill = target <= 0 ? 0.0 : ((earnings / target).clamp(0.0, 1.0)).toDouble();
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isActive
+                      ? golden.withValues(alpha: 0.6)
+                      : (isCompleted ? golden.withValues(alpha: 0.3) : theme.colorScheme.secondary.withValues(alpha: 0.12)),
+                  width: isActive ? 1.5 : 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(isCompleted ? Icons.check_circle : (isActive ? Icons.stars : Icons.lock_outline),
+                              size: 16, color: isCompleted || isActive ? golden : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                          const SizedBox(width: 6),
+                          Text(lv['level_name']?.toString() ?? 'المستوى ${i + 1}',
+                              style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                      if (isActive)
+                        Text('الهدف الحالي', style: TextStyle(color: golden, fontSize: 11, fontWeight: FontWeight.bold))
+                      else if (isCompleted)
+                        Text('✓ مكتمل', style: TextStyle(color: golden, fontSize: 11, fontWeight: FontWeight.bold))
+                      else
+                        Text('الهدف: $target', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 11)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (isActive) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: fill,
+                        minHeight: 12,
+                        backgroundColor: theme.scaffoldBackgroundColor,
+                        color: golden,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('${earnings} / $target',
+                            style: TextStyle(color: golden, fontSize: 11, fontWeight: FontWeight.w600)),
+                        Text('${(fill * 100).toStringAsFixed(0)}%',
+                            style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 11)),
+                      ],
+                    ),
+                    if (earnings < target) ...[
+                      const SizedBox(height: 6),
+                      Text('الهدف السابق لم يكتمل — أرسل هدايا أكثر للانتقال للمستوى التالي',
+                          style: TextStyle(color: Colors.orange, fontSize: 11)),
+                    ],
+                  ] else if (isCompleted) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: 1,
+                        minHeight: 10,
+                        backgroundColor: theme.scaffoldBackgroundColor,
+                        color: golden,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }),
       ],
     );
   }
@@ -839,6 +1099,10 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         return ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
+            _buildTargetLevelsSection(controller, theme),
+            const SizedBox(height: 12),
+
+            // ── Earnings wallet (withdraw) ──
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -851,36 +1115,20 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('أرباحي الحالية', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 13)),
-                      Text('المستوى ${controller.myLevel}',
-                          style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('رصيد أرباحي القابل للسحب', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 13)),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text('${controller.myBalance}', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 34, fontWeight: FontWeight.bold)),
-                  Text('ماس', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
-                  const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text('التارجت: ${controller.myTarget}', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12)),
-                      Text('باقي ${controller.myRemaining}', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+                      Text('${controller.myBalance}', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 30, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 4),
+                      Text('ماس', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: controller.myProgress,
-                      minHeight: 12,
-                      backgroundColor: theme.scaffoldBackgroundColor,
-                      color: theme.colorScheme.secondary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text('${(controller.myProgress * 100).toStringAsFixed(0)}%',
-                      style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 10)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -1156,6 +1404,26 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                       _buildMemberStat('💰', '${member['balance'] ?? 0}', theme),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('المستوى ${member['level'] ?? 1}',
+                          style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 11)),
+                      Text('التارجت: ${member['target'] ?? 5000}  |  محقق: ${member['earnings'] ?? 0}',
+                          style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 11)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: _memberTargetProgress(member),
+                      minHeight: 8,
+                      backgroundColor: theme.scaffoldBackgroundColor,
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1164,6 +1432,13 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         ),
       ),
     );
+  }
+
+  /// A member's progress (computed cumulative earnings) toward their target.
+  double _memberTargetProgress(Map<String, dynamic> member) {
+    final t = ((member['target'] ?? 5000) as num).toDouble();
+    final e = ((member['earnings'] ?? member['monthly_earnings'] ?? 0) as num).toDouble();
+    return t <= 0 ? 0 : (e / t).clamp(0.0, 1.0);
   }
 
   Widget _buildMemberStat(String emoji, String value, ThemeData theme) {

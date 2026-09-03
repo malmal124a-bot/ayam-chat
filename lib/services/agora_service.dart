@@ -138,10 +138,16 @@ class AgoraService {
       );
 
       await _engine!.enableAudio();
-      await _engine!.muteLocalAudioStream(false);
+      // Start with the microphone MUTED: the user has not sat on a mic seat
+      // yet, so they must not broadcast their own audio to the room. Others
+      // still hear the room (incoming audio stays enabled). The mic is
+      // unmuted only when the user sits on a seat (joinSeat -> setMute(false))
+      // and muted again when they leave the seat (kickUserFromSeat).
+      _isMuted = true;
+      await _engine!.muteLocalAudioStream(true);
       await _engine!.adjustPlaybackSignalVolume(100);
 
-      debugPrint("Joining Agora channel: $channelName with UID: $uid");
+      debugPrint("Joining Agora channel: $channelName with UID: $uid (mic muted until seated)");
     } catch (e) {
       debugPrint("Error joining Agora channel: $e");
     }

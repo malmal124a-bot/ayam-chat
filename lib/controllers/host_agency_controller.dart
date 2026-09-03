@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 import '../services/agency_api_service.dart';
@@ -27,6 +27,7 @@ class HostAgencyController extends ChangeNotifier {
   String? _errorMessage;
   bool _agencyDeleted = false;
   String? _deletionMessage;
+  List<Map<String, dynamic>> _profitLevels = [];
 
   // Getters
   Map<String, dynamic>? get agency => _agency;
@@ -73,6 +74,13 @@ class HostAgencyController extends ChangeNotifier {
   /// Current user's withdrawable earnings balance.
   int get myBalance => (currentMember?['balance'] as num?)?.toInt() ?? diamondsBalance;
 
+  /// Current user's cumulative gift earnings (used to advance level targets).
+  int get myCumulativeEarnings =>
+      (currentMember?['earnings'] as num?)?.toInt() ?? myBalance;
+
+  /// All profit levels from the board (loaded in _loadData).
+  List<Map<String, dynamic>> get profitLevels => _profitLevels;
+
   /// Current user's target for the current level.
   int get myTarget => (currentMember?['target'] as num?)?.toInt() ?? 5000;
 
@@ -84,6 +92,47 @@ class HostAgencyController extends ChangeNotifier {
 
   double get myProgress =>
       myTarget <= 0 ? 0 : ((myBalance / myTarget).clamp(0.0, 1.0)).toDouble();
+
+  /// Aggregated agency earnings (sum over active members).
+  int get agencyTotalEarnings =>
+      _members.fold<int>(0, (s, m) => s + (((m['earnings'] ?? m['monthly_earnings']) as num?)?.toInt() ?? 0));
+  int get agencyMonthlyEarnings =>
+      _members.fold<int>(0, (s, m) => s + (((m['monthly_earnings']) as num?)?.toInt() ?? 0));
+  int get agencyWithdrawableBalance =>
+      _members.fold<int>(0, (s, m) => s + (((m['balance']) as num?)?.toInt() ?? 0));
+  int get agencyMemberCount => _members.length;
+
+  /// The agency's profit level resolved from its total cumulative earnings.
+  Map<String, dynamic>? get agencyLevel => _resolveProfitLevel(agencyTotalEarnings);
+
+  int get agencyLevelNumber => (agencyLevel?['level'] as num?)?.toInt() ?? 1;
+  int get agencyTarget => (agencyLevel?['target'] as num?)?.toInt() ?? 5000;
+  double? get agencyProfitPercent =>
+      (((agencyLevel?['level_row'] as Map<String, dynamic>?)?['profit_percent']) as num?)?.toDouble();
+  double get agencyTargetProgress =>
+      agencyTarget <= 0 ? 0 : ((agencyTotalEarnings / agencyTarget).clamp(0.0, 1.0)).toDouble();
+
+  /// Resolves the achieved profit level for a cumulative-earnings value from
+  /// the loaded `host_profit_levels` (mirrors `_recomputeHostLevel`).
+  Map<String, dynamic>? _resolveProfitLevel(int cumulative) {
+    try {
+      if (_profitLevels.isEmpty) return null;
+      Map<String, dynamic>? achieved;
+      int lvl = (_profitLevels.first['sort_order'] as num?)?.toInt() ?? 1;
+      int target = (_profitLevels.first['target'] as num?)?.toInt() ?? (lvl * 5000);
+      for (final l in _profitLevels) {
+        final min = (l['min_cumulative_coins'] as num?)?.toInt() ?? 0;
+        if (cumulative >= min) {
+          lvl = (l['sort_order'] as num?)?.toInt() ?? lvl;
+          target = (l['target'] as num?)?.toInt() ?? (lvl * 5000);
+          achieved = l;
+        }
+      }
+      return {'level': lvl, 'target': target, 'level_row': achieved};
+    } catch (_) {
+      return null;
+    }
+  }
 
   HostAgencyController() {
     _loadData();
@@ -195,6 +244,14 @@ class HostAgencyController extends ChangeNotifier {
       final uid = _client.auth.currentUser?.id;
       if (uid == null) return;
 
+      // Load profit levels (used to resolve the agency's level/target).
+      try {
+        _profitLevels = List<Map<String, dynamic>>.from(
+            await _client.from('host_profit_levels').select('*').order('sort_order'));
+      } catch (_) {
+        _profitLevels = [];
+      }
+
       // Find agency owned by current user
       final agencyData = await _client
           .from('agencies')
@@ -248,6 +305,12 @@ class HostAgencyController extends ChangeNotifier {
                   .maybeSingle();
             } catch (_) {}
           }
+          final cumulativeEarnings = (m['diamonds_earned_cumulative'] as num?)?.toInt() ?? 0;
+          final memberLevelRes = _resolveProfitLevel(cumulativeEarnings);
+          final resLevel = (memberLevelRes?['level'] as num?)?.toInt()
+              ?? (m['level'] as num?)?.toInt() ?? 1;
+          final resTarget = (memberLevelRes?['target'] as num?)?.toInt()
+              ?? (m['target'] as num?)?.toInt() ?? 5000;
           _members.add({
             'id': m['user_id'] ?? '',
             'auth_uid': userData?['auth_uid'] ?? m['user_id'],
@@ -256,15 +319,15 @@ class HostAgencyController extends ChangeNotifier {
             'photo_url': userData?['photo_url'] ?? '',
             'diamonds': userData?['diamonds'] ?? 0,
             'total_recharged': userData?['total_recharged'] ?? 0,
-            'earnings': m['diamonds_earned_cumulative'] ?? 0,
+            'earnings': cumulativeEarnings,
             'monthly_earnings': m['diamonds_earned_monthly'] ?? 0,
             'balance': m['diamonds_balance'] ?? 0,
             'status': m['status'] ?? 'active',
             'role': m['role'] ?? 'host',
             'joined_at': m['joined_at'] ?? '',
             'trial_ends_at': m['trial_ends_at'],
-            'target': m['target'] ?? 5000,
-            'level': m['level'] ?? 1,
+            'target': resTarget,
+            'level': resLevel,
             'period_type': m['period_type'] ?? 'weekly',
             'shipping_agent_id': m['shipping_agent_id'],
             'shipping_agent_name': m['shipping_agent_name'] ?? '',
@@ -356,11 +419,21 @@ class HostAgencyController extends ChangeNotifier {
         } catch (e) {
           _openRequest = null;
         }
-        // Also load the list of open agencies the user can browse & join.
-        await _fetchOpenAgencies();
+      } else {
+        _openRequest = null;
+      }
 
-        // Load invites addressed TO me (sent by an agency owner). These are
-        // accepted/declined by ME (the invitee), not by the owner.
+      // Non-owners (users who own no agency, OR are a member of one) can
+      // browse the open agencies on the system. Load the list for them so it
+      // shows even when the user already belongs to an agency.
+      if (!isOwner) {
+        await _fetchOpenAgencies();
+      }
+
+      // Load invites addressed TO me (sent by an agency owner). These are
+      // accepted/declined by ME (the invitee), not by the owner. Loaded for
+      // every non-owner so a member can still accept/decline new invites.
+      if (!isOwner) {
         try {
           final invites = await _client
               .from('host_agency_join_requests')
@@ -391,7 +464,6 @@ class HostAgencyController extends ChangeNotifier {
           _incomingInvites = [];
         }
       } else {
-        _openRequest = null;
         _incomingInvites = [];
       }
 

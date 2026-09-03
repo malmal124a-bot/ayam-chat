@@ -75,6 +75,18 @@ android {
             )
         }
     }
+
+    packaging {
+        jniLibs {
+            // Shed unused Agora advanced-extension libs (lip-sync, spatial
+            // audio, face/segmentation, noise-suppression, beauty, AV1, ...).
+            // These are NOT used by the app's basic voice chat and cut the
+            // APK size by ~100MB.
+            excludes += setOf(
+                "**/libagora_*_extension.so",
+            )
+        }
+    }
 }
 
 flutter {
