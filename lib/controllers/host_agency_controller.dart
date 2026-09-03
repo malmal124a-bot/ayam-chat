@@ -420,8 +420,8 @@ class HostAgencyController extends ChangeNotifier {
           .from('agencies')
           .select('id, name, photo_url, description, owner_id, agency_type, created_at')
           .eq('is_activated', true)
-          .eq('agency_type', 'hosting')
           .neq('owner_id', uid)
+          .inFilter('agency_type', ['hosting', 'shipping', 'mixed'])
           .order('created_at', ascending: false)
           .limit(50);
 

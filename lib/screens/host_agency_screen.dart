@@ -414,6 +414,27 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondary
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _typeLabel((a['agency_type'] ?? 'hosting')
+                                  .toString()),
+                              style: TextStyle(
+                                  color: theme.colorScheme.secondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
                       if (desc.isNotEmpty)
                         Text(desc,
                             maxLines: 1,
