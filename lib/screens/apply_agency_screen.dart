@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../controllers/agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class ApplyAgencyScreen extends StatefulWidget {
   const ApplyAgencyScreen({super.key});
@@ -322,7 +323,7 @@ class _ApplyAgencyScreenState extends State<ApplyAgencyScreen> {
                 Text('رصيد سيولة متاح للشحن', style: TextStyle(color: Colors.white38, fontSize: 12)),
               ],
             ),
-            if (isSelected) Icon(Icons.check_circle, color: AppTheme.royalGold),
+            if (isSelected) AppIcon('Icons.check_circle', icon: Icons.check_circle, color: AppTheme.royalGold),
           ],
         ),
       ),
@@ -347,7 +348,7 @@ class _ApplyAgencyScreenState extends State<ApplyAgencyScreen> {
             const SizedBox(width: 15),
             Text(method['name'], style: TextStyle(color: isSelected ? Colors.green : Colors.white, fontWeight: FontWeight.bold)),
             const Spacer(),
-            if (isSelected) const Icon(Icons.check_circle, color: Colors.green, size: 20),
+            if (isSelected) const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green, size: 20),
           ],
         ),
       ),
@@ -388,7 +389,7 @@ class _ApplyAgencyScreenState extends State<ApplyAgencyScreen> {
             child: isUploading
                 ? Center(child: CircularProgressIndicator(color: AppTheme.royalGold))
                 : imageUrl == null 
-                  ? Icon(Icons.add_a_photo_outlined, color: AppTheme.royalGold) 
+                  ? AppIcon('Icons.add_a_photo_outlined', icon: Icons.add_a_photo_outlined, color: AppTheme.royalGold) 
                   : (kIsWeb || imageUrl.startsWith('http') || imageUrl.startsWith('blob:')
                       ? Image.network(imageUrl, fit: BoxFit.cover)
                       : Image.file(File(imageUrl), fit: BoxFit.cover)),

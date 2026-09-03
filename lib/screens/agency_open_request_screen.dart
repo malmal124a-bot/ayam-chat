@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/host_agency_controller.dart';
 import '../services/cloudinary_service.dart';
+import '../widgets/app_icon.dart';
 
 /// "فتح وكالة" form — a user submits their own hosting-agency open request.
 /// Fields: agency photo, agency name, agency ID (numeric), WhatsApp number,
@@ -326,7 +327,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                     ),
                   ),
                   if (selected)
-                    Icon(Icons.check_circle,
+                    AppIcon('Icons.check_circle', icon: Icons.check_circle,
                         color: theme.colorScheme.secondary, size: 20),
                 ],
               ),
@@ -358,7 +359,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_a_photo_outlined,
+                          AppIcon('Icons.add_a_photo_outlined', icon: Icons.add_a_photo_outlined,
                               size: 40,
                               color: theme.colorScheme.secondary
                                   .withValues(alpha: 0.5)),
@@ -397,7 +398,7 @@ class _AgencyOpenRequestScreenState extends State<AgencyOpenRequestScreen> {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.badge_outlined,
+                      AppIcon('Icons.badge_outlined', icon: Icons.badge_outlined,
                           size: 34,
                           color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
                       const SizedBox(height: 8),

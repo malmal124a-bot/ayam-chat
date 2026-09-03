@@ -9,6 +9,7 @@ class HostAgencyController extends ChangeNotifier {
   final _client = Supabase.instance.client;
   RealtimeChannel? _agencySubscription;
   RealtimeChannel? _openRequestSubscription;
+  RealtimeChannel? _memberSubscription;
 
   // Agency data
   Map<String, dynamic>? _agency;
@@ -232,6 +233,42 @@ class HostAgencyController extends ChangeNotifier {
             _openRequest = payload.newRecord as Map<String, dynamic>;
             notifyListeners();
           },
+        )
+        .subscribe();
+  }
+
+  /// Refreshes data whenever THIS user's own agency membership row changes
+  /// (e.g. after a gift credits their earnings, level or target). This keeps
+  /// the "أرباحي" screen in sync instead of showing stale cached values.
+  void _subscribeToMemberChanges() async {
+    _memberSubscription?.unsubscribe();
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) return;
+
+    await SupabaseService.ensureValidSession();
+    _memberSubscription = _client
+        .channel('agency-member-$uid')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'host_agency_members',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: uid,
+          ),
+          callback: (_) => _loadData(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'host_agency_members',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: uid,
+          ),
+          callback: (_) => _loadData(),
         )
         .subscribe();
   }
@@ -469,6 +506,7 @@ class HostAgencyController extends ChangeNotifier {
 
       _subscribeToAgencyChanges();
       _subscribeToOpenRequestChanges();
+      _subscribeToMemberChanges();
 
       // Owner loads pending withdrawal + leave requests for approval.
       if (_agency != null && isOwner) {
@@ -493,7 +531,10 @@ class HostAgencyController extends ChangeNotifier {
           .select('id, name, photo_url, description, owner_id, agency_type, created_at')
           .eq('is_activated', true)
           .neq('owner_id', uid)
-          .inFilter('agency_type', ['hosting', 'shipping', 'mixed'])
+          // Include ALL agency types. The schema default is 'modife' and many
+          // open agencies are stored under that value — filtering to only
+          // hosting/shipping/mixed silently hid them from the browse list.
+          .inFilter('agency_type', ['modife', 'hosting', 'shipping', 'mixed'])
           .order('created_at', ascending: false)
           .limit(50);
 
@@ -1046,6 +1087,7 @@ class HostAgencyController extends ChangeNotifier {
   void dispose() {
     _agencySubscription?.unsubscribe();
     _openRequestSubscription?.unsubscribe();
+    _memberSubscription?.unsubscribe();
     super.dispose();
   }
 }

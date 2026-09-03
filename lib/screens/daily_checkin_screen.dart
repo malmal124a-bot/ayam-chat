@@ -2,6 +2,7 @@
 import 'package:get/get.dart';
 import '../controllers/daily_checkin_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class DailyCheckinScreen extends StatelessWidget {
   const DailyCheckinScreen({super.key});
@@ -71,7 +72,7 @@ class DailyCheckinScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.local_fire_department, color: Colors.orange, size: 40),
+          const AppIcon('Icons.local_fire_department', icon: Icons.local_fire_department, color: Colors.orange, size: 40),
           const SizedBox(width: 15),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

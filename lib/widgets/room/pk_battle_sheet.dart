@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../app_icon.dart';
 
 class PKBattleSheet extends StatefulWidget {
   final Function(String mode, int durationMinutes)? onStartPK;
@@ -46,8 +47,8 @@ class _PKBattleSheetState extends State<PKBattleSheet> {
                     'assets/images/icon_pk.png',
                     width: 28,
                     height: 28,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.sports_esports,
+                    errorBuilder: (context, error, stackTrace) => const AppIcon(
+                      'Icons.sports_esports', icon: Icons.sports_esports,
                       color: Colors.amber,
                       size: 28,
                     ),

@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../controllers/svip_controller.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/wallet_controller.dart';
+import '../widgets/app_icon.dart';
 
 class SvipPortalScreen extends StatelessWidget {
   const SvipPortalScreen({super.key});
@@ -65,7 +66,7 @@ class SvipPortalScreen extends StatelessWidget {
               style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ] else ...[
-            const Icon(Icons.workspace_premium_outlined, size: 80, color: Colors.white24),
+            const AppIcon('Icons.workspace_premium_outlined', icon: Icons.workspace_premium_outlined, size: 80, color: Colors.white24),
             const SizedBox(height: 16),
             const Text(
               'NO SVIP STATUS',
@@ -125,7 +126,7 @@ class SvipPortalScreen extends StatelessWidget {
                   child: const Text('UPGRADE'),
                 )
               else
-                const Icon(Icons.check_circle, color: Colors.green),
+                const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green),
             ],
           ),
         );

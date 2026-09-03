@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../widgets/app_icon.dart';
 
 // Absolute imports to ensure perfect resolution
 import 'package:ayam_chat/controllers/user_controller.dart';
@@ -107,12 +108,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: Icon(Icons.camera_alt_rounded, color: theme.colorScheme.secondary),
+              leading: AppIcon('Icons.camera_alt_rounded', icon: Icons.camera_alt_rounded, color: theme.colorScheme.secondary),
               title: Text('الكاميرا', style: TextStyle(color: theme.colorScheme.onSurface)),
               onTap: () => _pickImage(ImageSource.camera),
             ),
             ListTile(
-              leading: Icon(Icons.photo_library_rounded, color: theme.colorScheme.secondary),
+              leading: AppIcon('Icons.photo_library_rounded', icon: Icons.photo_library_rounded, color: theme.colorScheme.secondary),
               title: Text('المعرض', style: TextStyle(color: theme.colorScheme.onSurface)),
               onTap: () => _pickImage(ImageSource.gallery),
             ),
@@ -219,14 +220,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
          return Image.network(
            _base64Image!,
            fit: BoxFit.cover,
-           errorBuilder: (c, e, s) => const Icon(Icons.error),
+           errorBuilder: (c, e, s) => const AppIcon('Icons.error', icon: Icons.error),
          );
        }
        final String pureBase64 = _base64Image!.split(',').last;
        return Image.memory(
          Uint8List.fromList(base64Decode(pureBase64)),
          fit: BoxFit.cover,
-         errorBuilder: (c, e, s) => const Icon(Icons.error),
+         errorBuilder: (c, e, s) => const AppIcon('Icons.error', icon: Icons.error),
        );
     }
 
@@ -241,7 +242,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
        return Image.memory(
          Uint8List.fromList(base64Decode(pureBase64)),
          fit: BoxFit.cover,
-         errorBuilder: (c, e, s) => const Icon(Icons.person),
+          errorBuilder: (c, e, s) => const AppIcon('Icons.person', icon: Icons.person),
        );
     }
 
@@ -249,11 +250,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return Image.network(
         profilePic,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Icon(Icons.person),
+        errorBuilder: (context, error, stackTrace) => const AppIcon('Icons.person', icon: Icons.person),
       );
     }
     
-    return Image.file(File(profilePic), fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.person));
+    return Image.file(File(profilePic), fit: BoxFit.cover, errorBuilder: (c, e, s) => const AppIcon('Icons.person', icon: Icons.person));
   }
 
   @override
@@ -310,7 +311,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 shape: BoxShape.circle,
                                 border: Border.all(color: theme.cardColor, width: 2),
                               ),
-                              child: Icon(Icons.camera_alt_rounded, size: 20, color: theme.colorScheme.onSecondary),
+                              child: AppIcon('Icons.camera_alt_rounded', icon: Icons.camera_alt_rounded, size: 20, color: theme.colorScheme.onSecondary),
                             ),
                           ),
                         ],
@@ -373,7 +374,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             "${_selectedDob.toLocal()}".split(' ')[0],
                             style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16),
                           ),
-                          Icon(Icons.calendar_today_rounded, color: theme.colorScheme.secondary),
+                          AppIcon('Icons.calendar_today_rounded', icon: Icons.calendar_today_rounded, color: theme.colorScheme.secondary),
                         ],
                       ),
                     ),

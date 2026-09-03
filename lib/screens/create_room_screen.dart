@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/supabase_service.dart';
 import '../services/cloudinary_service.dart';
 import '../widgets/royal_button.dart';
+import '../widgets/app_icon.dart';
 import 'voice_room_screen.dart';
 import '../controllers/user_controller.dart';
 import '../utils/image_utils.dart';
@@ -176,7 +177,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.amber),
+          icon: const AppIcon('Icons.arrow_back_ios_new_rounded', icon: Icons.arrow_back_ios_new_rounded, color: Colors.amber),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -229,7 +230,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                                     color: Colors.amber.withOpacity(0.1),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.add_photo_alternate_rounded, color: Colors.amber, size: 32),
+                                  child: const AppIcon('Icons.add_photo_alternate_rounded', icon: Icons.add_photo_alternate_rounded, color: Colors.amber, size: 32),
                                 ),
                                 const SizedBox(height: 12),
                                 const Text('اضغط لاختيار صورة من الاستوديو', 
@@ -245,7 +246,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                                   color: Colors.amber,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.edit, color: Colors.black, size: 18),
+                                child: const AppIcon('Icons.edit', icon: Icons.edit, color: Colors.black, size: 18),
                               ),
                             ),
                     ),

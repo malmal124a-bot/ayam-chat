@@ -6,6 +6,7 @@ import 'package:ayam_chat/controllers/user_controller.dart';
 import 'package:ayam_chat/services/cloudinary_service.dart';
 import 'package:ayam_chat/screens/family_members_screen.dart';
 import 'package:ayam_chat/screens/family_management_screen.dart';
+import '../widgets/app_icon.dart';
 
 class FamilyDetailsScreen extends StatefulWidget {
   const FamilyDetailsScreen({super.key});
@@ -45,7 +46,7 @@ class _FamilyDetailsScreenState extends State<FamilyDetailsScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.family_restroom_rounded, size: 80, color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
+              AppIcon('Icons.family_restroom_rounded', icon: Icons.family_restroom_rounded, size: 80, color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
               const SizedBox(height: 24),
               Text('انضم لعالم العائلات', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary)),
               const SizedBox(height: 12),
@@ -55,7 +56,7 @@ class _FamilyDetailsScreenState extends State<FamilyDetailsScreen> {
                 width: double.infinity, height: 52,
                 child: ElevatedButton.icon(
                   onPressed: () => _showCreateFamilyDialog(context),
-                  icon: const Icon(Icons.add_circle_outline),
+                  icon: const AppIcon('Icons.add_circle_outline', icon: Icons.add_circle_outline),
                   label: Text('إنشاء عائلة (${FamilyController.createCost} ماسة)', style: const TextStyle(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                 ),
@@ -77,7 +78,7 @@ class _FamilyDetailsScreenState extends State<FamilyDetailsScreen> {
         centerTitle: true,
         actions: [
           if (family.isOwner)
-            IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FamilyManagementScreen())), icon: const Icon(Icons.settings)),
+            IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FamilyManagementScreen())), icon: const AppIcon('Icons.settings', icon: Icons.settings)),
         ],
       ),
       body: SingleChildScrollView(
@@ -117,10 +118,10 @@ class _FamilyDetailsScreenState extends State<FamilyDetailsScreen> {
                   radius: 45,
                   backgroundColor: Colors.white24,
                   backgroundImage: family.imageUrl != null && family.imageUrl!.isNotEmpty ? NetworkImage(family.imageUrl!) : null,
-                  child: family.imageUrl == null || family.imageUrl!.isEmpty ? const Icon(Icons.family_restroom, color: Colors.white, size: 40) : null,
+                  child: family.imageUrl == null || family.imageUrl!.isEmpty ? const AppIcon('Icons.family_restroom', icon: Icons.family_restroom, color: Colors.white, size: 40) : null,
                 ),
                 if (family.isOwner)
-                  Positioned(bottom: 0, right: 0, child: CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.camera_alt, size: 16, color: theme.colorScheme.primary))),
+                  Positioned(bottom: 0, right: 0, child: CircleAvatar(radius: 14, backgroundColor: Colors.white, child: AppIcon('Icons.camera_alt', icon: Icons.camera_alt, size: 16, color: theme.colorScheme.primary))),
               ],
             ),
           ),
@@ -202,7 +203,7 @@ class _FamilyDetailsScreenState extends State<FamilyDetailsScreen> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => _confirmDissolve(context),
-                icon: const Icon(Icons.delete_forever, color: Colors.red),
+                icon: const AppIcon('Icons.delete_forever', icon: Icons.delete_forever, color: Colors.red),
                 label: const Text('حل العائلة نهائياً', style: TextStyle(color: Colors.red)),
                 style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),

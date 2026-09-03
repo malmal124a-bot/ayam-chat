@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import '../controllers/leaderboard_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import '../models/ranking_model.dart';
 
 class LeaderboardScreen extends StatelessWidget {
@@ -118,7 +119,7 @@ class _LeaderboardContent extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.emoji_events_outlined, size: 64, color: Colors.white24),
+            AppIcon('Icons.emoji_events_outlined', icon: Icons.emoji_events_outlined, size: 64, color: Colors.white24),
             SizedBox(height: 16),
             Text('لا يوجد بيانات حالياً', style: TextStyle(color: Colors.white54, fontSize: 16)),
           ],
@@ -158,7 +159,7 @@ class _RoomRankingContent extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.meeting_room_outlined, size: 64, color: Colors.white24),
+            AppIcon('Icons.meeting_room_outlined', icon: Icons.meeting_room_outlined, size: 64, color: Colors.white24),
             SizedBox(height: 16),
             Text('لا يوجد غرف حالياً', style: TextStyle(color: Colors.white54, fontSize: 16)),
           ],
@@ -198,7 +199,7 @@ class _AgencyRankingContent extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.business_outlined, size: 64, color: Colors.white24),
+            AppIcon('Icons.business_outlined', icon: Icons.business_outlined, size: 64, color: Colors.white24),
             SizedBox(height: 16),
             Text('لا يوجد وكالات حالياً', style: TextStyle(color: Colors.white54, fontSize: 16)),
           ],
@@ -292,9 +293,9 @@ class _PodiumBadge extends StatelessWidget {
               backgroundImage: _getSafeImageProvider(user.avatarUrl),
               backgroundColor: Colors.grey,
               child: isRoom
-                  ? Icon(Icons.meeting_room, size: avatarSize, color: Colors.white)
+                  ? AppIcon('Icons.meeting_room', icon: Icons.meeting_room, size: avatarSize, color: Colors.white)
                   : isAgency
-                      ? Icon(Icons.business, size: avatarSize, color: Colors.white)
+                      ? AppIcon('Icons.business', icon: Icons.business, size: avatarSize, color: Colors.white)
                       : null,
             ),
           ),
@@ -370,9 +371,9 @@ class _LeaderboardItem extends StatelessWidget {
             backgroundImage: _getSafeImageProvider(item.avatarUrl),
             backgroundColor: Colors.grey,
             child: isRoom
-                ? const Icon(Icons.meeting_room, size: 22, color: Colors.white)
+                ? const AppIcon('Icons.meeting_room', icon: Icons.meeting_room, size: 22, color: Colors.white)
                 : isAgency
-                    ? const Icon(Icons.business, size: 22, color: Colors.white)
+                    ? const AppIcon('Icons.business', icon: Icons.business, size: 22, color: Colors.white)
                     : null,
           ),
           const SizedBox(width: 12),

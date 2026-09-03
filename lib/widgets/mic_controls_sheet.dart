@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/mic_seat.dart';
+import 'app_icon.dart';
 
 class MicControlsSheet extends StatelessWidget {
   final MicSeat seat;
@@ -86,7 +87,7 @@ class MicControlsSheet extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Column(
                     children: [
-                      const Icon(Icons.lock_outline, color: Colors.redAccent, size: 32),
+                      const AppIcon('Icons.lock_outline', icon: Icons.lock_outline, color: Colors.redAccent, size: 32),
                       const SizedBox(height: 8),
                       Text(
                         'المقعد مغلق',

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import '../widgets/app_icon.dart';
 import '../controllers/room_ui_controller.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/gift_controller.dart';
@@ -250,7 +251,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
       }
     }
     if (matchedGift != null && matchedGift.animated) {
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
           giftManager.triggerAnimation(context, matchedGift!, senderName: msg.senderName);
         }
@@ -320,7 +321,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                         color: Colors.white12,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.image, color: Colors.white70, size: 20),
+                      child: const AppIcon('Icons.image', icon: Icons.image, color: Colors.white70, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -364,7 +365,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                         ),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.send, color: Colors.white, size: 20),
+                      child: const AppIcon('Icons.send', icon: Icons.send, color: Colors.white, size: 20),
                     ),
                   ),
                 ],
@@ -524,7 +525,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
               child: Image.asset(
                 assetPath,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(Icons.settings, color: Colors.amber, size: 30),
+                errorBuilder: (_, __, ___) => const AppIcon('Icons.settings', icon: Icons.settings, color: Colors.amber, size: 30),
               ),
             ),
           ),
@@ -663,7 +664,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                         debugPrint('Error picking audio: $e');
                       }
                     },
-                    icon: const Icon(Icons.folder_open, color: Colors.black),
+                    icon: const AppIcon('Icons.folder_open', icon: Icons.folder_open, color: Colors.black),
                     label: const Text('اختيار من الجهاز', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber,
@@ -708,7 +709,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                                     },
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                    icon: const AppIcon('Icons.delete_outline', icon: Icons.delete_outline, color: Colors.red, size: 20),
                                     onPressed: () {
                                       setSheetState(() {
                                         if (index == _currentMusicIndex) {
@@ -832,7 +833,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                         color: Colors.primaries[index % Colors.primaries.length].withOpacity(0.5),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Center(child: Icon(Icons.image, color: Colors.white70)),
+                      child: const Center(child: AppIcon('Icons.image', icon: Icons.image, color: Colors.white70)),
                     ),
                   );
                 }),
@@ -917,7 +918,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.backpack, color: Colors.amber, size: 40),
+                        const AppIcon('Icons.backpack', icon: Icons.backpack, color: Colors.amber, size: 40),
                         const SizedBox(height: 8),
                         Text('عنصر ${index + 1}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
                         const SizedBox(height: 4),
@@ -960,12 +961,12 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                         return ListTile(
                           leading: const CircleAvatar(
                             backgroundColor: Colors.red,
-                            child: Icon(Icons.person_off, color: Colors.white),
+                            child: AppIcon('Icons.person_off', icon: Icons.person_off, color: Colors.white),
                           ),
                           title: Text(banned['user_name'] ?? 'مستخدم', style: const TextStyle(color: Colors.white)),
                           subtitle: const Text('محظور', style: TextStyle(color: Colors.red)),
                           trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
+                            icon: const AppIcon('Icons.delete', icon: Icons.delete, color: Colors.red),
                             onPressed: () async {
                               await controller.unbanUser(banned['user_id'] ?? '');
                               if (mounted) {
@@ -1231,8 +1232,9 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                     ),
                   ),
                   if (seat.isMuted)
-                    const Icon(
-                      Icons.mic_off,
+                    const AppIcon(
+                      'Icons.mic_off',
+                      icon: Icons.mic_off,
                       color: Colors.red,
                       size: 16,
                     ),
@@ -1507,7 +1509,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                           width: 35,
                           height: 35,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.minimize_rounded, color: Colors.blue, size: 35),
+                          errorBuilder: (_, __, ___) => const AppIcon('Icons.minimize_rounded', icon: Icons.minimize_rounded, color: Colors.blue, size: 35),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -1532,7 +1534,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                           width: 35,
                           height: 35,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.logout_rounded, color: Colors.red, size: 35),
+                          errorBuilder: (_, __, ___) => const AppIcon('Icons.logout_rounded', icon: Icons.logout_rounded, color: Colors.red, size: 35),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -1557,12 +1559,17 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
         ChangeNotifierProvider.value(value: giftManager),
         ChangeNotifierProvider.value(value: giftController),
       ],
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        resizeToAvoidBottomInset: false,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) _minimizeRoom();
+        },
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          resizeToAvoidBottomInset: false,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
             Image(image: _getSafeImage(controller.backgroundPath), fit: BoxFit.cover),
             Container(color: Colors.black.withOpacity(0.4)),
 
@@ -1618,7 +1625,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                                     Text(totalPoints > 0 ? totalPoints.toString() : '105880', style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
                                     const SizedBox(width: 6),
                                     Image.asset('assets/Asad/icon_room_rank.png', width: 18, height: 18, fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 18)),
+                                      errorBuilder: (_, __, ___) => const AppIcon('Icons.emoji_events_rounded', icon: Icons.emoji_events_rounded, color: Colors.amber, size: 18)),
                                   ],
                                 );
                               }
@@ -1881,6 +1888,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -1899,14 +1907,14 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                       behavior: HitTestBehavior.opaque,
                       onTap: _handleExit,
                       child: Image.asset('assets/Asad/room_exit.png', width: 24, height: 24, fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 24))
+                        errorBuilder: (_, __, ___) => const AppIcon('Icons.power_settings_new_rounded', icon: Icons.power_settings_new_rounded, color: Colors.white, size: 24))
                   ),
                   const SizedBox(width: 14),
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: _showShareOptions,
                     child: Image.asset('assets/Asad/room_share.png', width: 20, height: 20, fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.ios_share_rounded, color: Colors.white, size: 20)),
+                      errorBuilder: (_, __, ___) => const AppIcon('Icons.ios_share_rounded', icon: Icons.ios_share_rounded, color: Colors.white, size: 20)),
                   ),
                 ],
               ),
@@ -1972,7 +1980,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
                                 const Text('31.6K', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
                                 const SizedBox(width: 4),
                                 Image.asset('assets/Asad/vip_coin.png', width: 12, height: 12, fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.workspace_premium, color: Colors.amber, size: 10)),
+                                  errorBuilder: (_, __, ___) => const AppIcon('Icons.workspace_premium', icon: Icons.workspace_premium, color: Colors.amber, size: 10)),
                               ],
                             ),
                           ),
@@ -2042,7 +2050,7 @@ class _MiniPlayerWidget extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(roomName, style: const TextStyle(color: Colors.white, fontSize: 12)),
                 const SizedBox(width: 8),
-                GestureDetector(onTap: onClose, child: const Icon(Icons.close, color: Colors.white54, size: 16)),
+                GestureDetector(onTap: onClose, child: const AppIcon('Icons.close', icon: Icons.close, color: Colors.white54, size: 16)),
               ],
             ),
           ),
@@ -2089,7 +2097,7 @@ void audienceMemberSheet(
                   onInvite(user['id'] ?? '');
                   Navigator.pop(context);
                 },
-                icon: const Icon(Icons.mic, size: 20),
+                icon: const AppIcon('Icons.mic', icon: Icons.mic, size: 20),
                 label: const Text('دعوة للمايك'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -2118,7 +2126,7 @@ void audienceMemberSheet(
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.airline_seat_recline_extra, size: 20, color: Colors.black),
+                        AppIcon('Icons.airline_seat_recline_extra', icon: Icons.airline_seat_recline_extra, size: 20, color: Colors.black),
                         SizedBox(width: 8),
                         Text('سحب للمقعد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
                       ],

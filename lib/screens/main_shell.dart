@@ -1,10 +1,12 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'messages_screen.dart';
 import 'profile_screen.dart';
 import 'rooms_home_screen.dart';
 import '../controllers/rewards_controller.dart';
 import '../widgets/daily_reward_popup.dart';
+import '../widgets/app_icon.dart';
 
 class MainShell extends StatefulWidget {
   final int initialIndex;
@@ -47,8 +49,15 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        // Pressing back on the main screen fully closes the app instead of
+        // just sending it to the background.
+        if (!didPop) SystemNavigator.pop();
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
       body: pages[index],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -69,24 +78,25 @@ class _MainShellState extends State<MainShell> {
           type: theme.bottomNavigationBarTheme.type ?? BottomNavigationBarType.fixed,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontSize: 12),
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
+              icon: AppIcon('Icons.home', icon: Icons.home_outlined),
+              activeIcon: AppIcon('Icons.home_active', icon: Icons.home_rounded),
               label: 'الرئيسية',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.forum_outlined),
-              activeIcon: Icon(Icons.forum_rounded),
+              icon: AppIcon('Icons.chat', icon: Icons.forum_outlined),
+              activeIcon: AppIcon('Icons.chat_active', icon: Icons.forum_rounded),
               label: 'الدردشة',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded),
-              activeIcon: Icon(Icons.person_rounded),
+              icon: AppIcon('Icons.person', icon: Icons.person_outline_rounded),
+              activeIcon: AppIcon('Icons.person_active', icon: Icons.person_rounded),
               label: 'أنا',
             ),
           ],
         ),
+      ),
       ),
     );
   }

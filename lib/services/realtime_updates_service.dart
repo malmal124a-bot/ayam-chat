@@ -6,6 +6,7 @@ import 'package:realtime_client/realtime_client.dart' show PostgresChangeEvent;
 import '../services/supabase_service.dart';
 import '../services/theme_service.dart';
 import '../services/screen_visual_service.dart';
+import '../services/app_icon_service.dart';
 import '../services/level_service.dart';
 import '../services/badge_necklace_services.dart';
 
@@ -197,6 +198,7 @@ class RealtimeUpdatesService extends ChangeNotifier {
       await Future.wait([
         ThemeService.instance.reloadColors(),
         ScreenVisualService.instance.reloadVisuals(),
+        AppIconService.instance.reload(),
         LevelService.instance.reloadLevels(),
         BadgeService.instance.reloadBadges(),
         NecklaceService.instance.reloadNecklaces(),

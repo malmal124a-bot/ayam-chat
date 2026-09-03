@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../controllers/rocket_controller.dart';
+import 'app_icon.dart';
 
 class RocketRewardBox extends StatefulWidget {
   final VoidCallback onClaimed;
@@ -70,8 +71,8 @@ class _RocketRewardBoxState extends State<RocketRewardBox> with SingleTickerProv
               ),
               child: Image.asset(
                 'assets/Asad/gift_box.png', // Assuming this exists or using a fallback
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.card_giftcard,
+                errorBuilder: (context, error, stackTrace) => const AppIcon(
+                  'Icons.card_giftcard', icon: Icons.card_giftcard,
                   color: Colors.yellow,
                   size: 50,
                 ),

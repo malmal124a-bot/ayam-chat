@@ -2,6 +2,7 @@
 import '../controllers/user_controller.dart';
 import '../controllers/vip_controller.dart';
 import '../controllers/wallet_controller.dart';
+import '../widgets/app_icon.dart';
 
 class VipLevelsScreen extends StatefulWidget {
   const VipLevelsScreen({super.key});
@@ -166,7 +167,7 @@ class _VipLevelsScreenState extends State<VipLevelsScreen> {
                             ? AssetImage(userController.profilePic) as ImageProvider
                             : null,
                         backgroundColor: theme.cardColor,
-                        child: userController.profilePic.isEmpty ? Icon(Icons.person, color: theme.colorScheme.onSurface) : null,
+                        child: userController.profilePic.isEmpty ? AppIcon('Icons.person', icon: Icons.person, color: theme.colorScheme.onSurface) : null,
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -269,7 +270,7 @@ class _VipLevelsScreenState extends State<VipLevelsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.verified, color: theme.colorScheme.secondary),
+                        AppIcon('Icons.verified', icon: Icons.verified, color: theme.colorScheme.secondary),
                         const SizedBox(width: 8),
                         Text(
                           'لقد وصلت إلى أعلى مستوى VIP!',
@@ -287,7 +288,7 @@ class _VipLevelsScreenState extends State<VipLevelsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.auto_awesome, color: theme.colorScheme.secondary, size: 20),
+                AppIcon('Icons.auto_awesome', icon: Icons.auto_awesome, color: theme.colorScheme.secondary, size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'مزايا العضوية الملكية',
@@ -364,7 +365,7 @@ class _VipLevelsScreenState extends State<VipLevelsScreen> {
                         ),
                       ),
                       if (isCurrent)
-                        Icon(Icons.verified, color: theme.colorScheme.secondary)
+                        AppIcon('Icons.verified', icon: Icons.verified, color: theme.colorScheme.secondary)
                       else if (isNext && canUpgradeThis)
                         ElevatedButton(
                           onPressed: hasEnoughDiamondsThis ? () => _handleUpgrade(level) : null,
@@ -380,7 +381,7 @@ class _VipLevelsScreenState extends State<VipLevelsScreen> {
                           ),
                         )
                       else if (isLocked)
-                        Icon(Icons.lock_outline, color: theme.colorScheme.onSurface.withValues(alpha: 0.24))
+                        AppIcon('Icons.lock_outline', icon: Icons.lock_outline, color: theme.colorScheme.onSurface.withValues(alpha: 0.24))
                       else
                         const SizedBox.shrink(),
                     ],

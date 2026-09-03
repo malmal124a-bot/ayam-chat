@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../controllers/invite_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class InvitationCodeScreen extends StatefulWidget {
   const InvitationCodeScreen({super.key});
@@ -62,7 +63,7 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.royalGold),
+          icon: AppIcon('Icons.arrow_back_ios', icon: Icons.arrow_back_ios, color: AppTheme.royalGold),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -91,8 +92,7 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.stars_rounded, color: AppTheme.royalGold, size: 28),
-                          const SizedBox(width: 12),
+                          AppIcon('Icons.stars_rounded', icon: Icons.stars_rounded, color: AppTheme.royalGold, size: 28),
                           Expanded(
                             child: Text(
                               'invite_friends_title'.tr(),
@@ -152,7 +152,7 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.copy, color: AppTheme.royalGold, size: 20),
+                            icon: AppIcon('Icons.copy', icon: Icons.copy, color: AppTheme.royalGold, size: 20),
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: controller.myInviteCode));
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -167,7 +167,7 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
                         width: 160,
                         child: ElevatedButton.icon(
                           onPressed: () => _handleShare(context, controller.myInviteCode),
-                          icon: const Icon(Icons.share_rounded, size: 18),
+                          icon: const AppIcon('Icons.share_rounded', icon: Icons.share_rounded, size: 18),
                           label: Text('share'.tr()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
@@ -247,7 +247,7 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle_outline, color: AppTheme.royalGold, size: 16),
+          AppIcon('Icons.check_circle_outline', icon: Icons.check_circle_outline, color: AppTheme.royalGold, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

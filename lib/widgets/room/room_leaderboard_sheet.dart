@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/leaderboard_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../models/ranking_model.dart';
+import '../app_icon.dart';
 
 class RoomLeaderboardSheet extends StatelessWidget {
   final String roomId;
@@ -108,7 +109,7 @@ class _LeaderboardList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.emoji_events_outlined, size: 64, color: Colors.white24),
+            AppIcon('Icons.emoji_events_outlined', icon: Icons.emoji_events_outlined, size: 64, color: Colors.white24),
             SizedBox(height: 16),
             Text('لا يوجد بيانات حالياً', style: TextStyle(color: Colors.white54, fontSize: 16)),
           ],

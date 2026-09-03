@@ -37,11 +37,13 @@ import 'services/catalog_service.dart';
 import 'services/svga_asset_service.dart';
 import 'services/theme_service.dart';
 import 'services/screen_visual_service.dart';
+import 'services/app_icon_service.dart';
 import 'services/level_service.dart';
 import 'services/badge_necklace_services.dart';
 import 'services/realtime_updates_service.dart';
 import 'services/app_update_service.dart';
 import 'widgets/update_dialog.dart';
+import 'widgets/app_icon.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -122,6 +124,8 @@ class _SplashScreenState extends State<_SplashScreen>
       await ThemeService.instance.loadColors();
       // Load screen visuals from admin dashboard
       await ScreenVisualService.instance.loadVisuals();
+      // Load icon/emoji -> image overrides from admin dashboard
+      await AppIconService.instance.load();
       // Load level configs from admin dashboard
       await LevelService.instance.loadLevels();
       // Load badges from admin dashboard
@@ -210,7 +214,7 @@ class _SplashScreenState extends State<_SplashScreen>
                     colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
                   ),
                 ),
-                child: const Icon(Icons.mic, color: Colors.white, size: 50),
+                child: const AppIcon('Icons.mic', icon: Icons.mic, color: Colors.white, size: 50),
               ),
               const SizedBox(height: 32),
               const Text(
@@ -250,7 +254,11 @@ class AyamChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: ThemeService.instance,
+      listenable: Listenable.merge([
+        ThemeService.instance,
+        AppIconService.instance,
+        ScreenVisualService.instance,
+      ]),
       builder: (context, _) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,

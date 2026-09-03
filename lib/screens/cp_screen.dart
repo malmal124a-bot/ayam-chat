@@ -5,6 +5,7 @@ import '../controllers/user_controller.dart';
 import '../controllers/relationship_controller.dart';
 import '../widgets/broadcast_ticker.dart';
 import '../widgets/friend_requests_notification.dart';
+import '../widgets/app_icon.dart';
 
 class CpScreen extends StatefulWidget {
   const CpScreen({super.key});
@@ -72,7 +73,7 @@ class _CpScreenState extends State<CpScreen> {
                         width: 40,
                         height: 40,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.favorite, color: Colors.pink, size: 40),
+                        errorBuilder: (_, __, ___) => const AppIcon('Icons.favorite', icon: Icons.favorite, color: Colors.pink, size: 40),
                       ),
                       const SizedBox(width: 20),
                       _buildPartnerAvatar(null, 'في انتظار الشريك', isMain: false),
@@ -127,7 +128,7 @@ class _CpScreenState extends State<CpScreen> {
                             width: 16,
                             height: 16,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.favorite, color: Colors.pink, size: 16),
+                            errorBuilder: (_, __, ___) => const AppIcon('Icons.favorite', icon: Icons.favorite, color: Colors.pink, size: 16),
                           ),
                           const SizedBox(width: 4),
                           const Text(
@@ -233,9 +234,9 @@ class _CpScreenState extends State<CpScreen> {
                 ? Image.network(
                     image,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 30),
+                    errorBuilder: (_, __, ___) => const AppIcon('Icons.person', icon: Icons.person, size: 30),
                   )
-                : const Icon(Icons.person_add, size: 30, color: Colors.white38),
+                : const AppIcon('Icons.person_add', icon: Icons.person_add, size: 30, color: Colors.white38),
           ),
         ),
         const SizedBox(height: 8),
@@ -286,7 +287,7 @@ class _CpScreenState extends State<CpScreen> {
             width: 30,
             height: 30,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(Icons.lock, size: 20, color: Colors.white38),
+            errorBuilder: (_, __, ___) => const AppIcon('Icons.lock', icon: Icons.lock, size: 20, color: Colors.white38),
           ),
         ),
         const SizedBox(height: 8),
@@ -318,7 +319,7 @@ class _CpScreenState extends State<CpScreen> {
               color: Colors.pink.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.card_giftcard, color: Colors.pink, size: 24),
+            child: const AppIcon('Icons.card_giftcard', icon: Icons.card_giftcard, color: Colors.pink, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(

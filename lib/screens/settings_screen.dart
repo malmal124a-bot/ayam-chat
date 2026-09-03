@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/settings_list.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.darkBrown),
+          icon: AppIcon('Icons.arrow_back_ios', icon: Icons.arrow_back_ios, color: AppTheme.darkBrown),
           onPressed: () => Navigator.pop(context),
         ),
       ),

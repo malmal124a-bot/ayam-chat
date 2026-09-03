@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
+import 'app_icon.dart';
 
 class RoomUserWidget extends StatelessWidget {
   const RoomUserWidget({super.key});
@@ -40,7 +41,7 @@ class RoomUserWidget extends StatelessWidget {
                       width: 20,
                       height: 20,
                       fit: BoxFit.contain,
-                      errorBuilder: (c, e, s) => const Icon(Icons.star, size: 14),
+                      errorBuilder: (c, e, s) => const AppIcon('Icons.star', icon: Icons.star, size: 14),
                     ),
                   ),
                 ),

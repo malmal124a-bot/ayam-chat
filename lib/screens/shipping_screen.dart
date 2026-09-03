@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class ShippingScreen extends StatelessWidget {
   const ShippingScreen({super.key});
@@ -14,7 +15,7 @@ class ShippingScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.darkBrown),
+          icon: AppIcon('Icons.arrow_back_ios_new', icon: Icons.arrow_back_ios_new, color: AppTheme.darkBrown),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -22,7 +23,7 @@ class ShippingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.local_shipping_outlined, size: 80, color: AppTheme.royalGold),
+            AppIcon('Icons.local_shipping_outlined', icon: Icons.local_shipping_outlined, size: 80, color: AppTheme.royalGold),
             const SizedBox(height: 20),
             Text(
               'coming_soon'.tr(),

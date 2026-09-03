@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/gift_manager.dart';
+import 'app_icon.dart';
 
 class LuckyGiftBanner extends StatelessWidget {
   const LuckyGiftBanner({super.key});
@@ -97,7 +98,7 @@ class _BannerContent extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 5),
-          const Icon(Icons.stars, color: Colors.amber, size: 20),
+          const AppIcon('Icons.stars', icon: Icons.stars, color: Colors.amber, size: 20),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../widgets/app_icon.dart';
 import '../controllers/medal_controller.dart';
 import '../models/medal_model.dart';
 import '../theme/app_theme.dart';
@@ -18,7 +19,7 @@ class MedalScreen extends StatelessWidget {
           backgroundColor: AppTheme.nearBlackPurple,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: AppTheme.royalGold, size: 20),
+            icon: AppIcon('Icons.arrow_back_ios', icon: Icons.arrow_back_ios, color: AppTheme.royalGold, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
@@ -102,7 +103,7 @@ class _MedalDisplayContainer extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.stars_rounded, color: AppTheme.royalGold, size: 14),
+              AppIcon('Icons.stars_rounded', icon: Icons.stars_rounded, color: AppTheme.royalGold, size: 14),
               const SizedBox(width: 8),
               Text(
                 'عرض الأوسمة المجهزة'.tr().toUpperCase(),
@@ -114,7 +115,7 @@ class _MedalDisplayContainer extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.stars_rounded, color: AppTheme.royalGold, size: 14),
+              AppIcon('Icons.stars_rounded', icon: Icons.stars_rounded, color: AppTheme.royalGold, size: 14),
             ],
           ),
           const SizedBox(height: 25),
@@ -169,11 +170,12 @@ class _MedalSlot extends StatelessWidget {
             ? Padding(
                 key: ValueKey(medal!.id),
                 padding: const EdgeInsets.all(12.0),
-                child: Image.asset(medal!.iconPath, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => Icon(Icons.military_tech_outlined, size: 30, color: AppTheme.royalGold)),
+                child: Image.asset(medal!.iconPath, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => AppIcon('Icons.military_tech_outlined', icon: Icons.military_tech_outlined, size: 30, color: AppTheme.royalGold)),
               )
             : Center(
-                child: Icon(
-                  Icons.military_tech_outlined, 
+                child: AppIcon(
+                  'Icons.military_tech_outlined',
+                  icon: Icons.military_tech_outlined, 
                   color: AppTheme.royalGold.withValues(alpha: 0.05), 
                   size: 28
                 ),
@@ -246,7 +248,7 @@ class MedalGrid extends StatelessWidget {
               medal.iconPath,
               width: 100,
               height: 100,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.military_tech, size: 100, color: Colors.white10),
+              errorBuilder: (context, error, stackTrace) => const AppIcon('Icons.military_tech', icon: Icons.military_tech, size: 100, color: Colors.white10),
             ),
             const SizedBox(height: 20),
             Text(
@@ -382,15 +384,16 @@ class _MedalItemState extends State<_MedalItem> with SingleTickerProviderStateMi
                     widget.medal.iconPath,
                     width: 55,
                     height: 55,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.military_tech,
+                    errorBuilder: (context, error, stackTrace) => const AppIcon(
+                      'Icons.military_tech',
+                      icon: Icons.military_tech,
                       size: 55,
                       color: Colors.white10,
                     ),
                   ),
                 ),
                 if (!widget.isOwned)
-                  const Icon(Icons.lock, color: Colors.white24, size: 18),
+                  const AppIcon('Icons.lock', icon: Icons.lock, color: Colors.white24, size: 18),
                 if (widget.isNewlyUnlocked)
                   Positioned(
                     top: 0,
@@ -398,7 +401,7 @@ class _MedalItemState extends State<_MedalItem> with SingleTickerProviderStateMi
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                      child: const Icon(Icons.star, color: Colors.white, size: 10),
+                      child: const AppIcon('Icons.star', icon: Icons.star, color: Colors.white, size: 10),
                     ),
                   ),
               ],

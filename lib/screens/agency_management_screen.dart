@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../controllers/agency_controller.dart';
 import '../models/agency_model.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import 'agency_portal.dart';
 
 class AgencyManagementScreen extends StatefulWidget {
@@ -90,7 +91,7 @@ class _AgencyManagementScreenState extends State<AgencyManagementScreen> with Si
               heroTag: 'invite',
               backgroundColor: AppTheme.royalGold,
               onPressed: _showInviteDialog,
-              icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.black),
+              icon: const AppIcon('Icons.person_add_alt_1_rounded', icon: Icons.person_add_alt_1_rounded, color: Colors.black),
               label: Text('invite_modife'.tr(), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: 12),
@@ -103,7 +104,7 @@ class _AgencyManagementScreenState extends State<AgencyManagementScreen> with Si
                   MaterialPageRoute(builder: (_) => const AgencyPortal()),
                 );
               },
-              child: const Icon(Icons.dashboard_rounded, color: Colors.white),
+              child: const AppIcon('Icons.dashboard_rounded', icon: Icons.dashboard_rounded, color: Colors.white),
             ),
           ],
         ),
@@ -197,11 +198,11 @@ class _AgencyManagementScreenState extends State<AgencyManagementScreen> with Si
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.check_circle, color: Colors.green),
+                  icon: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green),
                   onPressed: () => controller.respondToJoinRequest(request, true),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.cancel, color: Colors.red),
+                  icon: const AppIcon('Icons.cancel', icon: Icons.cancel, color: Colors.red),
                   onPressed: () => controller.respondToJoinRequest(request, false),
                 ),
               ],

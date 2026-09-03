@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'agency_payment_method_screen.dart';
+import '../widgets/app_icon.dart';
 
 class AgencyTierSelectionScreen extends StatefulWidget {
   final Map<String, dynamic> verificationData;
@@ -114,7 +115,7 @@ class _AgencyTierSelectionScreenState extends State<AgencyTierSelectionScreen> {
               ),
             ),
             if (isSelected) 
-              Icon(Icons.check_circle, color: AppTheme.royalGold, size: 28),
+              AppIcon('Icons.check_circle', icon: Icons.check_circle, color: AppTheme.royalGold, size: 28),
           ],
         ),
       ),

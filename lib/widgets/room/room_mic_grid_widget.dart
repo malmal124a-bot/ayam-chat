@@ -6,6 +6,7 @@ import '../../models/mic_seat.dart';
 import '../../controllers/user_controller.dart';
 import '../../utils/image_utils.dart';
 import '../../services/svga_asset_service.dart';
+import '../app_icon.dart';
 
 class RoomMicGridWidget extends StatelessWidget {
   final List<MicSeat> seats;
@@ -186,7 +187,7 @@ class RoomMicSeatWidget extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 0.4),
                       ),
-                      child: const Icon(Icons.star, color: Colors.white, size: 6.5),
+                      child: const AppIcon('Icons.star', icon: Icons.star, color: Colors.white, size: 6.5),
                     ),
                   ),
                 if (!isEmpty && seat.isMuted)
@@ -200,7 +201,7 @@ class RoomMicSeatWidget extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 0.4),
                       ),
-                      child: const Icon(Icons.mic_off, color: Colors.white, size: 6.5),
+                      child: const AppIcon('Icons.mic_off', icon: Icons.mic_off, color: Colors.white, size: 6.5),
                     ),
                   ),
                 if (seat.isLocked)
@@ -214,7 +215,7 @@ class RoomMicSeatWidget extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 0.4),
                       ),
-                      child: const Icon(Icons.lock, color: Colors.white, size: 6.5),
+                      child: const AppIcon('Icons.lock', icon: Icons.lock, color: Colors.white, size: 6.5),
                     ),
                   ),
               ],

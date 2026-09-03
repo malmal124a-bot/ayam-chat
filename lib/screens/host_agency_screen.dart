@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/host_agency_controller.dart';
+import '../widgets/app_icon.dart';
 import 'agency_open_request_screen.dart';
 
 class HostAgencyScreen extends StatefulWidget {
@@ -117,7 +118,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               centerTitle: true,
               actions: [
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurface),
+                  icon: AppIcon('Icons.more_vert', icon: Icons.more_vert, color: theme.colorScheme.onSurface),
                   onSelected: (v) => _handleMenuAction(v, controller),
                   itemBuilder: (_) => [
                     const PopupMenuItem(value: 'refresh', child: Text('تحديث')),
@@ -186,7 +187,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           children: [
             Row(
               children: [
-                Icon(Icons.mail_outline, color: theme.colorScheme.secondary, size: 20),
+                AppIcon('Icons.mail_outline', icon: Icons.mail_outline, color: theme.colorScheme.secondary, size: 20),
                 const SizedBox(width: 8),
                 Text('لديك دعوات انضمام',
                     style: TextStyle(
@@ -277,7 +278,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                         ? rejectNote
                         : 'يمكنك التواصل مع الإدارة لمعرفة السبب.')
               else ...[
-                Icon(Icons.business_outlined,
+                AppIcon('Icons.business_outlined', icon: Icons.business_outlined,
                     size: 80,
                     color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
                 const SizedBox(height: 20),
@@ -297,7 +298,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   onPressed: () => controller.refresh(),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.secondary),
-                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  icon: const AppIcon('Icons.refresh', icon: Icons.refresh, color: Colors.white),
                   label: const Text('تحديث حالة الطلب',
                       style: TextStyle(color: Colors.white)),
                 )
@@ -306,7 +307,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   onPressed: () => controller.refresh(),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.secondary),
-                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  icon: const AppIcon('Icons.refresh', icon: Icons.refresh, color: Colors.white),
                   label: const Text('دخول لوحة الوكالة',
                       style: TextStyle(color: Colors.white)),
                 )
@@ -322,7 +323,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       minimumSize: const Size(double.infinity, 52)),
-                  icon: const Icon(Icons.add_business, color: Colors.white),
+                  icon: const AppIcon('Icons.add_business', icon: Icons.add_business, color: Colors.white),
                   label: const Text('هل تريد فتح وكالة؟',
                       style: TextStyle(
                           color: Colors.white,
@@ -337,7 +338,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   onPressed: () => controller.refresh(),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.secondary),
-                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  icon: const AppIcon('Icons.refresh', icon: Icons.refresh, color: Colors.white),
                   label: const Text('تحديث',
                       style: TextStyle(color: Colors.white)),
                 ),
@@ -355,7 +356,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
       children: [
         Row(
           children: [
-            Icon(Icons.explore_outlined,
+            AppIcon('Icons.explore_outlined', icon: Icons.explore_outlined,
                 size: 18, color: theme.colorScheme.secondary),
             const SizedBox(width: 8),
             Text('الوكالات المفتوحة على النظام',
@@ -365,7 +366,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                     fontWeight: FontWeight.bold)),
             const Spacer(),
             IconButton(
-              icon: Icon(Icons.refresh, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              icon: AppIcon('Icons.refresh', icon: Icons.refresh, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               onPressed: () => controller.refreshOpenAgencies(),
               tooltip: 'تحديث',
             ),
@@ -404,7 +405,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   leading: CircleAvatar(
                     backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
                     child: photo.isEmpty
-                        ? Icon(Icons.business, color: theme.colorScheme.secondary)
+                        ? AppIcon('Icons.business', icon: Icons.business, color: theme.colorScheme.secondary)
                         : null,
                   ),
                   title: Text(name,
@@ -524,7 +525,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.block_outlined, size: 80, color: Colors.red.withValues(alpha: 0.5)),
+            AppIcon('Icons.block_outlined', icon: Icons.block_outlined, size: 80, color: Colors.red.withValues(alpha: 0.5)),
             const SizedBox(height: 20),
             Text(controller.deletionMessage ?? 'تم إغلاق الوكالة', style: const TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -562,7 +563,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(color: theme.colorScheme.secondary.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                child: Icon(Icons.business, color: theme.colorScheme.secondary, size: 20),
+                child: AppIcon('Icons.business', icon: Icons.business, color: theme.colorScheme.secondary, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -616,7 +617,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () => _showRechargeDialog(context, controller),
-              icon: const Icon(Icons.local_shipping_outlined, size: 18),
+              icon: const AppIcon('Icons.local_shipping_outlined', icon: Icons.local_shipping_outlined, size: 18),
               label: const Text('شحن مستخدم',
                   style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
@@ -631,7 +632,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () => _showSalariesDialog(context, controller),
-              icon: const Icon(Icons.payments_outlined, size: 18),
+              icon: const AppIcon('Icons.payments_outlined', icon: Icons.payments_outlined, size: 18),
               label: const Text('صرف الرواتب',
                   style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
@@ -903,7 +904,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
             padding: const EdgeInsets.only(top: 40),
             child: Column(
               children: [
-                Icon(Icons.people_outline, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+                AppIcon('Icons.people_outline', icon: Icons.people_outline, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
                 const SizedBox(height: 16),
                 Text('لا يوجد أعضاء بعد', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
               ],
@@ -1232,7 +1233,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.red.withValues(alpha: 0.2))),
               child: Row(
                 children: [
-                  Icon(Icons.logout, color: Colors.red),
+                  AppIcon('Icons.logout', icon: Icons.logout, color: Colors.red),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text('رابط يرغب بالانسحاب من الوكالة؟ أرسل طلباً للوكيل للموافقة.',
@@ -1292,7 +1293,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
             children: [
               Row(
                 children: [
-                  Icon(Icons.person_add_alt_1, size: 18, color: theme.colorScheme.secondary),
+                  AppIcon('Icons.person_add_alt_1', icon: Icons.person_add_alt_1, size: 18, color: theme.colorScheme.secondary),
                   const SizedBox(width: 6),
                   Text('دعوة عضو إلى الوكالة', style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)),
                 ],
@@ -1326,7 +1327,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                     );
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.secondary),
-                  icon: const Icon(Icons.send, size: 16, color: Colors.white),
+                  icon: const AppIcon('Icons.send', icon: Icons.send, size: 16, color: Colors.white),
                   label: const Text('إرسال دعوة', style: TextStyle(color: Colors.white)),
                 ),
               ),
@@ -1370,7 +1371,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   : null,
               child: (member['photo_url'] as String?)?.isNotEmpty == true
                   ? null
-                  : Icon(Icons.person, color: theme.colorScheme.secondary),
+                  : AppIcon('Icons.person', icon: Icons.person, color: theme.colorScheme.secondary),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1427,7 +1428,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                 ],
               ),
             ),
-            Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+            AppIcon('Icons.chevron_left', icon: Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
           ],
         ),
       ),
@@ -1497,7 +1498,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                               : null,
                           child: (member['photo_url'] as String?)?.isNotEmpty == true
                               ? null
-                              : Icon(Icons.person, color: theme.colorScheme.secondary),
+                  : AppIcon('Icons.person', icon: Icons.person, color: theme.colorScheme.secondary),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -1574,7 +1575,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                               }
                             }
                           },
-                          icon: const Icon(Icons.person_remove, color: Colors.white),
+                          icon: const AppIcon('Icons.person_remove', icon: Icons.person_remove, color: Colors.white),
                           label: const Text('إزالة من الوكالة', style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.red, minimumSize: const Size(double.infinity, 48)),
                         ),
@@ -1682,7 +1683,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
       decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
-          const Icon(Icons.send, color: Colors.blue, size: 18),
+          const AppIcon('Icons.send', icon: Icons.send, color: Colors.blue, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -1707,7 +1708,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
       decoration: BoxDecoration(color: theme.cardColor, borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
-          const Icon(Icons.download, color: Colors.orange, size: 18),
+          const AppIcon('Icons.download', icon: Icons.download, color: Colors.orange, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -1757,7 +1758,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   CircleAvatar(
                     radius: 18,
                     backgroundImage: (req['member_photo_url'] as String?)?.isNotEmpty == true ? NetworkImage(req['member_photo_url'] as String) : null,
-                    child: (req['member_photo_url'] as String?)?.isNotEmpty == true ? null : const Icon(Icons.person),
+                    child: (req['member_photo_url'] as String?)?.isNotEmpty == true ? null : const AppIcon('Icons.person', icon: Icons.person),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1777,7 +1778,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                           final r = await controller.approveWithdrawal(req['id']);
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
                         },
-                        icon: const Icon(Icons.check_circle, color: Colors.green),
+                        icon: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green),
                       ),
                       IconButton(
                         tooltip: 'رفض',
@@ -1785,7 +1786,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                           final r = await controller.rejectWithdrawal(req['id']);
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
                         },
-                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        icon: const AppIcon('Icons.cancel', icon: Icons.cancel, color: Colors.red),
                       ),
                     ],
                   ),
@@ -1814,7 +1815,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           ),
           child: Row(
             children: [
-              const Icon(Icons.logout, color: Colors.red),
+              const AppIcon('Icons.logout', icon: Icons.logout, color: Colors.red),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(req['member_name'] ?? 'مستخدم', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold)),
@@ -1825,7 +1826,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   final r = await controller.respondLeave(req['id'], true);
                   if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
                 },
-                icon: const Icon(Icons.check_circle, color: Colors.green),
+                icon: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green),
               ),
               IconButton(
                 tooltip: 'رفض',
@@ -1833,7 +1834,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                   final r = await controller.respondLeave(req['id'], false);
                   if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r['message']), backgroundColor: r['ok'] ? Colors.green : Colors.red));
                 },
-                icon: const Icon(Icons.cancel, color: Colors.red),
+                icon: const AppIcon('Icons.cancel', icon: Icons.cancel, color: Colors.red),
               ),
             ],
           ),
@@ -1848,7 +1849,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
           padding: const EdgeInsets.only(top: 80),
           child: Column(
             children: [
-              Icon(Icons.person_add_outlined, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+              AppIcon('Icons.person_add_outlined', icon: Icons.person_add_outlined, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
               const SizedBox(height: 16),
               Text('لا توجد طلبات أو دعوات', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
             ],
@@ -1869,7 +1870,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
               CircleAvatar(
                 radius: 22,
                 backgroundImage: (req['user_photo'] as String?)?.isNotEmpty == true ? NetworkImage(req['user_photo'] as String) : null,
-                child: (req['user_photo'] as String?)?.isNotEmpty == true ? null : Icon(Icons.person, color: isInvited ? Colors.blue : Colors.amber),
+                child: (req['user_photo'] as String?)?.isNotEmpty == true ? null : AppIcon('Icons.person', icon: Icons.person, color: isInvited ? Colors.blue : Colors.amber),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1901,14 +1902,14 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
                       final result = await controller.approveJoinRequest(req['id'], req['user_id']);
                       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message']), backgroundColor: result['ok'] ? Colors.green : Colors.red));
                     },
-                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                    icon: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green),
                   ),
                   IconButton(
                     onPressed: () async {
                       final result = await controller.rejectJoinRequest(req['id']);
                       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message']), backgroundColor: result['ok'] ? Colors.green : Colors.red));
                     },
-                    icon: const Icon(Icons.cancel, color: Colors.red),
+                    icon: const AppIcon('Icons.cancel', icon: Icons.cancel, color: Colors.red),
                   ),
                 ],
               ),
@@ -1937,7 +1938,7 @@ class _HostAgencyScreenState extends State<HostAgencyScreen> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+            AppIcon('Icons.history', icon: Icons.history, size: 64, color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text('لا توجد سجلات بعد', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
           ],

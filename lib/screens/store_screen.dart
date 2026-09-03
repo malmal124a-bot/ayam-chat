@@ -5,6 +5,7 @@ import 'package:ayam_chat/controllers/inventory_controller.dart';
 import 'package:ayam_chat/controllers/user_controller.dart';
 import 'package:ayam_chat/models/store_item.dart';
 import 'package:ayam_chat/screens/inventory_screen.dart';
+import '../widgets/app_icon.dart';
 
 class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
@@ -113,7 +114,7 @@ class _StoreScreenState extends State<StoreScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.diamond, color: theme.colorScheme.secondary, size: 16),
+                  AppIcon('Icons.diamond', icon: Icons.diamond, color: theme.colorScheme.secondary, size: 16),
                   const SizedBox(width: 6),
                   Text('${walletController.diamonds}', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 13)),
                 ],
@@ -123,7 +124,7 @@ class _StoreScreenState extends State<StoreScreen> {
             IconButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InventoryScreen())),
               icon: Image.asset('assets/images/Untitled-1_0033_icon_bag.png', width: 24, height: 24, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Icon(Icons.inventory_2_rounded, color: theme.colorScheme.secondary)),
+                errorBuilder: (_, __, ___) => AppIcon('Icons.inventory_2_rounded', icon: Icons.inventory_2_rounded, color: theme.colorScheme.secondary)),
               tooltip: 'حقيبتي',
             ),
             const SizedBox(width: 8),
@@ -160,7 +161,7 @@ class _StoreScreenState extends State<StoreScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.category_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+            AppIcon('Icons.category_outlined', icon: Icons.category_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
             const SizedBox(height: 16),
             Text('هذا القسم فارغ حالياً', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.38))),
           ],
@@ -253,7 +254,7 @@ class _StoreScreenState extends State<StoreScreen> {
 
   Widget _buildItemImage(String path, ThemeData theme) {
     if (path.isEmpty) {
-      return Icon(Icons.diamond, color: theme.colorScheme.secondary, size: 40);
+      return AppIcon('Icons.diamond', icon: Icons.diamond, color: theme.colorScheme.secondary, size: 40);
     }
 
     final imageProvider = path.startsWith('http') 
@@ -267,7 +268,7 @@ class _StoreScreenState extends State<StoreScreen> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.diamond, color: theme.colorScheme.secondary.withValues(alpha: 0.5), size: 40),
+            AppIcon('Icons.diamond', icon: Icons.diamond, color: theme.colorScheme.secondary.withValues(alpha: 0.5), size: 40),
             const SizedBox(height: 4),
             Text('خطأ في الصورة', style: TextStyle(fontSize: 8, color: theme.colorScheme.onSurface.withValues(alpha: 0.2))),
           ],

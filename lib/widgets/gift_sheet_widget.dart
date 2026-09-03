@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'app_icon.dart';
 import '../controllers/gift_controller.dart';
 import '../controllers/room_ui_controller.dart';
 import '../controllers/user_controller.dart';
@@ -266,7 +267,7 @@ Future<void> showComprehensiveGiftSheet(
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        const Icon(Icons.diamond, color: Colors.blueAccent, size: 10),
+                                        const AppIcon('Icons.diamond', icon: Icons.diamond, color: Colors.blueAccent, size: 10),
                                         const SizedBox(width: 2),
                                         Text('${item.price}', style: const TextStyle(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                                       ],
@@ -295,7 +296,7 @@ Future<void> showComprehensiveGiftSheet(
                               alignment: Alignment.centerLeft,
                               child: Row(
                                 children: [
-                                  const Icon(Icons.diamond, color: Colors.blueAccent, size: 20),
+                                   const AppIcon('Icons.diamond', icon: Icons.diamond, color: Colors.blueAccent, size: 20),
                                   const SizedBox(width: 6),
                                   Text(formatBalance(walletController.diamonds), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                                   const SizedBox(width: 8),
@@ -431,7 +432,7 @@ Widget _recipientAvatar({required String label, required bool isSelected, requir
                   ),
                 ),
               ),
-              if (isSelected) Positioned(bottom: 0, right: 0, child: Container(decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle), child: const Icon(Icons.check, size: 12, color: Colors.black))),
+              if (isSelected) Positioned(bottom: 0, right: 0, child: Container(decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle), child: const AppIcon('Icons.check', icon: Icons.check, size: 12, color: Colors.black))),
             ],
           ),
           const SizedBox(height: 4),
@@ -450,7 +451,7 @@ Widget _buildQuantityDropdown(BuildContext context, GiftController gift) {
       value: gift.multiplier,
       items: gift.multipliers.map((m) => DropdownMenuItem(value: m, child: Text('$m', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Cairo')))).toList(),
       onChanged: (v) => gift.setMultiplier(v!),
-      underline: const SizedBox(), icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.amber, size: 22),
+      underline: const SizedBox(), icon: const AppIcon('Icons.keyboard_arrow_down_rounded', icon: Icons.keyboard_arrow_down_rounded, color: Colors.amber, size: 22),
       dropdownColor: const Color(0xFF1E293B), alignment: Alignment.center,
     ),
   );

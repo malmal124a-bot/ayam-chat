@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_icon.dart';
 
 class RoomBottomDockWidget extends StatelessWidget {
   final bool micEnabled;
@@ -56,7 +57,7 @@ class RoomBottomDockWidget extends StatelessWidget {
                 child: Row(
                   children: [
                     Image.asset('assets/Asad/func_chat.png', width: 16, height: 16, fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.chat_bubble_outline, color: Colors.white70, size: 16)),
+                      errorBuilder: (_, __, ___) => const AppIcon('Icons.chat_bubble_outline', icon: Icons.chat_bubble_outline, color: Colors.white70, size: 16)),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -120,8 +121,8 @@ class RoomBottomDockWidget extends StatelessWidget {
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
             // Fallback to generic icon if asset not found
-            return const Icon(
-              Icons.error_outline,
+            return const AppIcon(
+              'Icons.error_outline', icon: Icons.error_outline,
               color: Colors.white54,
               size: 18,
             );

@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import '../controllers/relationship_controller.dart';
 import '../models/relationship.dart';
+import 'app_icon.dart';
 
 class FriendRequestsNotification extends StatelessWidget {
   const FriendRequestsNotification({super.key});
@@ -41,11 +42,7 @@ class FriendRequestsNotification extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(
-                      Icons.person_add,
-                      color: Colors.pink,
-                      size: 20,
-                    ),
+                    const AppIcon('Icons.person_add', icon: Icons.person_add, color: Colors.pink, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       'طلبات الصداقة (${pendingRequests.length})',
@@ -148,7 +145,7 @@ class FriendRequestsNotification extends StatelessWidget {
                     );
                   }
                 },
-                icon: const Icon(Icons.check, color: Colors.green, size: 20),
+                icon: const AppIcon('Icons.check', icon: Icons.check, color: Colors.green, size: 20),
               ),
               IconButton(
                 onPressed: () async {
@@ -166,7 +163,7 @@ class FriendRequestsNotification extends StatelessWidget {
                     );
                   }
                 },
-                icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                icon: const AppIcon('Icons.close', icon: Icons.close, color: Colors.red, size: 20),
               ),
             ],
           ),

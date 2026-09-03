@@ -1,6 +1,7 @@
 ﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../app_icon.dart';
 
 class RoomTimerSheet extends StatefulWidget {
   const RoomTimerSheet({super.key});
@@ -86,7 +87,7 @@ class _RoomTimerSheetState extends State<RoomTimerSheet> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               children: [
-                Icon(Icons.history, color: Colors.white70, size: 20),
+                AppIcon('Icons.history', icon: Icons.history, color: Colors.white70, size: 20),
                 SizedBox(width: 10),
                 Text(
                   'سجل الفائزين السابقين',

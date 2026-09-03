@@ -1,6 +1,7 @@
 ﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'app_icon.dart';
 
 Future<void> showGiftSheet(BuildContext context, void Function(String giftName) onGiftSelected) {
   final theme = Theme.of(context);
@@ -44,7 +45,7 @@ Future<void> showGiftSheet(BuildContext context, void Function(String giftName) 
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.card_giftcard, color: theme.colorScheme.secondary, size: 28),
+                    AppIcon('Icons.card_giftcard', icon: Icons.card_giftcard, color: theme.colorScheme.secondary, size: 28),
                     const SizedBox(height: 8),
                     Text(gifts[i], textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 11)),
                   ],

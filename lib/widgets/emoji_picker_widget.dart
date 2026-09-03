@@ -1,6 +1,7 @@
 ﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'app_icon.dart';
 
 class EmojiPickerWidget extends StatelessWidget {
   final Function(String assetPath) onEmojiSelected;
@@ -123,7 +124,7 @@ class EmojiPickerWidget extends StatelessWidget {
                           fit: BoxFit.contain,
                           gaplessPlayback: true,
                           errorBuilder: (context, error, stackTrace) => 
-                            const Icon(Icons.face_retouching_natural, color: Colors.white24),
+                            const AppIcon('Icons.face_retouching_natural', icon: Icons.face_retouching_natural, color: Colors.white24),
                         ),
                       ),
                     );

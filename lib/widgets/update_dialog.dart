@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/app_update_service.dart';
+import 'app_icon.dart';
 
 /// Shows a modal "new update available" dialog. The user can download &
 /// install now, or dismiss to keep using the current version.
@@ -58,7 +59,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: Row(
         children: [
-          const Icon(Icons.system_update_alt, color: Color(0xFFFFD700)),
+          const AppIcon('Icons.system_update_alt', icon: Icons.system_update_alt, color: Color(0xFFFFD700)),
           const SizedBox(width: 10),
           const Text('تحديث جديد متاح',
               style: TextStyle(color: Colors.white, fontSize: 18)),

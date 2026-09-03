@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import '../controllers/wallet_controller.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/app_icon.dart';
 
 class ChargingScreen extends StatefulWidget {
   const ChargingScreen({super.key});
@@ -55,7 +56,7 @@ class _ChargingScreenState extends State<ChargingScreen> {
             Center(
               child: Column(
                 children: [
-                  Icon(Icons.lock_outline_rounded, color: theme.colorScheme.secondary.withValues(alpha: 0.6), size: 48),
+                  AppIcon('Icons.lock_outline_rounded', icon: Icons.lock_outline_rounded, color: theme.colorScheme.secondary.withValues(alpha: 0.6), size: 48),
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -86,7 +87,7 @@ class _ChargingScreenState extends State<ChargingScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.diamond, color: Colors.blueAccent, size: 24),
+                        AppIcon('Icons.diamond', icon: Icons.diamond, color: Colors.blueAccent, size: 24),
                         const SizedBox(width: 10),
                         Text(
                           '${NumberFormat.decimalPattern().format(wallet.diamonds)} ماسة',
@@ -223,7 +224,7 @@ class _ChargingScreenState extends State<ChargingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.diamond, color: Colors.blueAccent, size: 28),
+                const AppIcon('Icons.diamond', icon: Icons.diamond, color: Colors.blueAccent, size: 28),
                 const SizedBox(height: 5),
                 Text(
                   NumberFormat.compact().format(pkg['diamonds']),

@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/app_icon.dart';
 import 'edit_profile_screen.dart';
 import 'main_shell.dart';
 
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     hintText: 'البريد الإلكتروني',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-                    prefixIcon: const Icon(Icons.email_rounded, color: Colors.amber),
+                    prefixIcon: const AppIcon('Icons.email_rounded', icon: Icons.email_rounded, color: Colors.amber),
                     filled: true,
                     fillColor: const Color(0xFF2A1F0D),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -139,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     hintText: 'كلمة المرور',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-                    prefixIcon: const Icon(Icons.lock_rounded, color: Colors.amber),
+                    prefixIcon: const AppIcon('Icons.lock_rounded', icon: Icons.lock_rounded, color: Colors.amber),
                     filled: true,
                     fillColor: const Color(0xFF2A1F0D),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -428,7 +429,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.alternate_email_rounded, color: Colors.amber, size: 22),
+                                  const AppIcon('Icons.alternate_email_rounded', icon: Icons.alternate_email_rounded, color: Colors.amber, size: 22),
                                   const SizedBox(width: 10),
                                   Text(
                                     'الدخول بالبريد الإلكتروني',
@@ -485,8 +486,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
-      child: const Icon(
-        Icons.chat_bubble_rounded,
+      child: const AppIcon(
+        'Icons.chat_bubble_rounded',
+        icon: Icons.chat_bubble_rounded,
         color: Colors.amber,
         size: 60,
       ),
@@ -551,8 +553,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.person_outline_rounded,
+            AppIcon(
+              'Icons.person_outline_rounded',
+              icon: Icons.person_outline_rounded,
               color: Colors.amber,
               size: 24,
             ),

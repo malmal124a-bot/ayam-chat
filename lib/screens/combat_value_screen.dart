@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../controllers/user_controller.dart';
+import '../widgets/app_icon.dart';
 import 'leaderboard_screen.dart';
 
 class CombatValueScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _CombatValueScreenState extends State<CombatValueScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              Icon(Icons.whatshot, size: 100, color: theme.colorScheme.secondary),
+              AppIcon('Icons.whatshot', icon: Icons.whatshot, size: 100, color: theme.colorScheme.secondary),
               const SizedBox(height: 24),
               Text('قوتك القتالية الحالية',
                   style: TextStyle(
@@ -98,7 +99,7 @@ class _CombatValueScreenState extends State<CombatValueScreen> {
               ElevatedButton.icon(
                 onPressed: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
-                icon: const Icon(Icons.leaderboard),
+                icon: const AppIcon('Icons.leaderboard', icon: Icons.leaderboard),
                 label: const Text('مشاهدة لوحة المتصدرين'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.secondary,

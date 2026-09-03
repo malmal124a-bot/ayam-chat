@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/dm_controller.dart';
+import '../widgets/app_icon.dart';
 import 'dm_chat_screen.dart';
 
 class MessagesScreen extends StatelessWidget {
@@ -82,7 +83,7 @@ class MessagesScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Image.asset('assets/Asad/icon_search.png', width: 24, height: 24, fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(Icons.search, color: theme.colorScheme.onSurface)),
+              errorBuilder: (_, __, ___) => AppIcon('Icons.search', icon: Icons.search, color: theme.colorScheme.onSurface)),
             onPressed: () {},
           ),
         ],
@@ -148,7 +149,7 @@ class MessagesScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(40),
                     child: Column(
                       children: [
-                        Icon(Icons.chat_bubble_outline, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+                        AppIcon('Icons.chat_bubble_outline', icon: Icons.chat_bubble_outline, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
                         const SizedBox(height: 12),
                         Text(
                           'لا توجد محادثات بعد',

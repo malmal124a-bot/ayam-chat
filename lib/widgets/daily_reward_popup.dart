@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../controllers/rewards_controller.dart';
 import '../theme/app_theme.dart';
+import 'app_icon.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class DailyRewardPopup extends StatelessWidget {
@@ -37,7 +38,7 @@ class DailyRewardPopup extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.stars_rounded, color: AppTheme.royalGold, size: 60),
+                      AppIcon('Icons.stars_rounded', icon: Icons.stars_rounded, color: AppTheme.royalGold, size: 60),
                       const SizedBox(height: 16),
                       Text(
                         'daily_rewards_title'.tr(),
@@ -104,7 +105,7 @@ class DailyRewardPopup extends StatelessWidget {
                                     size: 24,
                                   ),
                                 if (isPast)
-                                  const Icon(Icons.check_circle, color: Colors.green, size: 14),
+                                  const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green, size: 14),
                               ],
                             ),
                           );

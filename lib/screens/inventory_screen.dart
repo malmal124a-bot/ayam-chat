@@ -3,6 +3,7 @@ import '../controllers/inventory_controller.dart';
 import '../controllers/store_controller.dart';
 import '../controllers/user_controller.dart';
 import '../models/store_item.dart';
+import '../widgets/app_icon.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -99,7 +100,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+            AppIcon('Icons.inventory_2_outlined', icon: Icons.inventory_2_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
             const SizedBox(height: 16),
             Text('لا تملك أي عناصر هنا بعد', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.54))),
             const SizedBox(height: 8),
@@ -153,7 +154,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(item.imagePath, fit: BoxFit.contain, errorBuilder: (c, e, s) => Icon(Icons.stars, color: theme.colorScheme.secondary, size: 40)),
+                  Image.asset(item.imagePath, fit: BoxFit.contain, errorBuilder: (c, e, s) => AppIcon('Icons.stars', icon: Icons.stars, color: theme.colorScheme.secondary, size: 40)),
                   if (isActive)
                     Positioned(
                       top: 0,
@@ -161,7 +162,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, shape: BoxShape.circle),
-                        child: Icon(Icons.check, color: theme.colorScheme.onPrimary, size: 12),
+                        child: AppIcon('Icons.check', icon: Icons.check, color: theme.colorScheme.onPrimary, size: 12),
                       ),
                     ),
                 ],

@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../controllers/room_ui_controller.dart';
 import '../../screens/edit_room_screen.dart';
+import '../app_icon.dart';
 
 class RoomInfoSheet extends StatefulWidget {
   final String roomName;
@@ -93,7 +94,7 @@ class _RoomInfoSheetState extends State<RoomInfoSheet> with SingleTickerProvider
               CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.amber,
-                child: const Icon(Icons.person, color: Colors.white, size: 35),
+                child: const AppIcon('Icons.person', icon: Icons.person, color: Colors.white, size: 35),
               ),
               const SizedBox(width: 12),
               Column(

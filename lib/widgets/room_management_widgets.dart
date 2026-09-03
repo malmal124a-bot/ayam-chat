@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:ayam_chat/models/mic_seat.dart';
+import 'app_icon.dart';
 
 Future<void> showUserProfilePopup(BuildContext context, MicSeat seat) {
   final theme = Theme.of(context);
@@ -32,7 +33,7 @@ Future<void> showUserProfilePopup(BuildContext context, MicSeat seat) {
                 gradient: LinearGradient(colors: [theme.colorScheme.tertiary, theme.colorScheme.secondary]),
                 border: Border.all(color: theme.colorScheme.secondary, width: 2),
               ),
-              child: const Icon(Icons.person, color: Colors.black, size: 44),
+              child: const AppIcon('Icons.person', icon: Icons.person, color: Colors.black, size: 44),
             ),
             const SizedBox(height: 12),
             Text('$userName $flag', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),

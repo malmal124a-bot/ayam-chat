@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/supabase_service.dart';
 import '../services/cloudinary_service.dart';
 import '../controllers/room_ui_controller.dart';
+import '../widgets/app_icon.dart';
 
 class EditRoomScreen extends StatefulWidget {
   final String roomName;
@@ -178,7 +179,7 @@ class _EditRoomScreenState extends State<EditRoomScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
-                          child: const Icon(Icons.camera_alt, size: 12, color: Colors.black),
+                          child: const AppIcon('Icons.camera_alt', icon: Icons.camera_alt, size: 12, color: Colors.black),
                         ),
                       ),
                     ],
@@ -366,7 +367,7 @@ class _EditRoomScreenState extends State<EditRoomScreen> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                        child: isSelected ? const Center(child: Icon(Icons.check_circle, color: Colors.amber, size: 40)) : null,
+                        child: isSelected ? const Center(child: AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.amber, size: 40)) : null,
                       ),
                     );
                   },
@@ -478,7 +479,7 @@ class _EditRoomScreenState extends State<EditRoomScreen> {
                 ],
               ),
             ),
-            trailing ?? const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 16),
+            trailing ?? const AppIcon('Icons.arrow_forward_ios', icon: Icons.arrow_forward_ios, color: Colors.white38, size: 16),
           ],
         ),
       ),

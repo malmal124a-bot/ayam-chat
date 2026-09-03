@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../controllers/room_ui_controller.dart';
+import '../app_icon.dart';
 
 class RoomChatStreamWidget extends StatelessWidget {
   final List<RoomMessage> messages;
@@ -102,7 +103,7 @@ class RoomChatStreamWidget extends StatelessWidget {
                               width: 200,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.broken_image, color: Colors.white54, size: 50);
+                                return const AppIcon('Icons.broken_image', icon: Icons.broken_image, color: Colors.white54, size: 50);
                               },
                             )
                           : Image.file(
@@ -110,7 +111,7 @@ class RoomChatStreamWidget extends StatelessWidget {
                               width: 200,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.broken_image, color: Colors.white54, size: 50);
+                                return const AppIcon('Icons.broken_image', icon: Icons.broken_image, color: Colors.white54, size: 50);
                               },
                             ),
                     ),

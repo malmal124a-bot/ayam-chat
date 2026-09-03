@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'dart:async';
+import '../app_icon.dart';
 
 class PkHudOverlay extends StatefulWidget {
   final int redScore;
@@ -99,7 +100,7 @@ class _PkHudOverlayState extends State<PkHudOverlay> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.timer, color: Colors.red, size: 20),
+                  const AppIcon('Icons.timer', icon: Icons.timer, color: Colors.red, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     _formatTime(remainingSeconds),

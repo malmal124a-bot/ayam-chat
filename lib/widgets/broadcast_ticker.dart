@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/broadcast_controller.dart';
+import 'app_icon.dart';
 
 class BroadcastTicker extends StatelessWidget {
   const BroadcastTicker({super.key});
@@ -30,8 +31,8 @@ class BroadcastTicker extends StatelessWidget {
             child: Row(
               children: [
                 const SizedBox(width: 12),
-                const Icon(
-                  Icons.campaign,
+                const AppIcon(
+                  'Icons.campaign', icon: Icons.campaign,
                   color: Colors.white,
                   size: 20,
                 ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../controllers/agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class AgencyPortal extends StatelessWidget {
   const AgencyPortal({super.key});
@@ -129,7 +130,7 @@ class _TargetManagementTab extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.info_outline, color: AppTheme.royalGold, size: 14),
+                    AppIcon('Icons.info_outline', icon: Icons.info_outline, color: AppTheme.royalGold, size: 14),
                     SizedBox(width: 5),
                     Text(
                       'يتم خصم 10% عمولة إدارية لوكالة الموديفين',
@@ -275,7 +276,7 @@ class _SupportersTab extends StatelessWidget {
           padding: EdgeInsets.all(20),
           child: Row(
             children: [
-              Icon(Icons.favorite, color: Colors.red, size: 20),
+              AppIcon('Icons.favorite', icon: Icons.favorite, color: Colors.red, size: 20),
               SizedBox(width: 10),
               Text('أكثر الداعمين لك في وكالة الموديفين', style: TextStyle(color: AppTheme.darkBrown, fontWeight: FontWeight.w900)),
             ],

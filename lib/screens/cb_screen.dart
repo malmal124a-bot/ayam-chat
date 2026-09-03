@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
+import '../widgets/app_icon.dart';
 
 class CBScreen extends StatelessWidget {
   const CBScreen({super.key});
@@ -32,7 +33,7 @@ class CBScreen extends StatelessWidget {
                 _buildProfileCircle(user.profilePic, user.name),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Icon(Icons.favorite, color: Colors.red, size: 50),
+                  child: AppIcon('Icons.favorite', icon: Icons.favorite, color: Colors.red, size: 50),
                 ),
                 _buildProfileCircle('', 'شريكك'),
               ],
@@ -69,7 +70,7 @@ class CBScreen extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: image.isEmpty 
-            ? const Icon(Icons.person, size: 40, color: Colors.grey)
+            ? const AppIcon('Icons.person', icon: Icons.person, size: 40, color: Colors.grey)
             : (image.startsWith('http') 
                 ? Image.network(
                     image,
@@ -78,7 +79,7 @@ class CBScreen extends StatelessWidget {
                       if (loadingProgress == null) return child;
                       return const Center(child: CircularProgressIndicator());
                     },
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+                    errorBuilder: (context, error, stackTrace) => const AppIcon('Icons.error', icon: Icons.error),
                   )
                 : Image.asset(image, fit: BoxFit.cover)),
         ),

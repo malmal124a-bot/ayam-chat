@@ -7,6 +7,7 @@ import '../controllers/agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../services/agency_api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class AgencyDashboardScreen extends StatefulWidget {
   const AgencyDashboardScreen({super.key});
@@ -72,8 +73,8 @@ class _AgencyDashboardScreenState extends State<AgencyDashboardScreen> {
             context: context,
             builder: (context) => AlertDialog(
               backgroundColor: Colors.white,
-              title: const Icon(Icons.check_circle, color: Colors.green, size: 50),
-              content: Text('تم شحن $amount ماسة للمستخدم $targetId بنجاح.',
+              title: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green, size: 50),
+                content: Text('تم شحن $amount ماسة للمستخدم $targetId بنجاح.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppTheme.darkBrown)),
               actions: [
@@ -112,7 +113,7 @@ class _AgencyDashboardScreenState extends State<AgencyDashboardScreen> {
               context: context,
               builder: (context) => AlertDialog(
                 backgroundColor: Colors.white,
-                title: const Icon(Icons.check_circle, color: Colors.green, size: 50),
+                title: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green, size: 50),
                 content: Text('تم شحن $amount ماسة للمستخدم $targetId بنجاح (محلي).',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.darkBrown)),
@@ -246,7 +247,7 @@ class _AgencyDashboardScreenState extends State<AgencyDashboardScreen> {
           const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.verified_user_rounded, color: Colors.black45, size: 16),
+              AppIcon('Icons.verified_user_rounded', icon: Icons.verified_user_rounded, color: Colors.black45, size: 16),
               SizedBox(width: 5),
               Text('وكيل معتمد - خصم 20%', style: TextStyle(color: Colors.black45, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
@@ -312,7 +313,7 @@ class _AgencyDashboardScreenState extends State<AgencyDashboardScreen> {
             leading: const CircleAvatar(
               backgroundColor: Colors.green,
               radius: 18,
-              child: Icon(Icons.arrow_upward, color: Colors.white, size: 18),
+              child: AppIcon('Icons.arrow_upward', icon: Icons.arrow_upward, color: Colors.white, size: 18),
             ),
             title: Text('شحن لـ ID: ${log.targetId}', style: TextStyle(color: AppTheme.darkBrown, fontWeight: FontWeight.bold)),
             subtitle: Text(DateFormat('yyyy-MM-dd HH:mm').format(log.date), style: const TextStyle(fontSize: 11)),

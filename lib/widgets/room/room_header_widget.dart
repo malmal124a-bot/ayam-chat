@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_icon.dart';
 
 class RoomHeaderWidget extends StatelessWidget {
   final String roomName;
@@ -52,12 +53,12 @@ class RoomHeaderWidget extends StatelessWidget {
                 children: [
                   GestureDetector(
                       onTap: onExit,
-                      child: const Icon(Icons.power_settings_new_rounded,
+                      child: const AppIcon('Icons.power_settings_new_rounded', icon: Icons.power_settings_new_rounded,
                           color: Colors.white, size: 26)),
                   const SizedBox(width: 16),
                   GestureDetector(
                       onTap: onShare,
-                      child: const Icon(Icons.ios_share_rounded,
+                      child: const AppIcon('Icons.ios_share_rounded', icon: Icons.ios_share_rounded,
                           color: Colors.white, size: 22)),
                 ],
               ),
@@ -100,7 +101,7 @@ class RoomHeaderWidget extends StatelessWidget {
                                               fontWeight: FontWeight.bold,
                                               fontFamily: 'Cairo')),
                                       SizedBox(width: 3),
-                                      Icon(Icons.workspace_premium,
+                                      AppIcon('Icons.workspace_premium', icon: Icons.workspace_premium,
                                           color: Colors.amber, size: 10),
                                     ],
                                   ),
@@ -175,7 +176,7 @@ class RoomHeaderWidget extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Cairo')),
                     SizedBox(width: 6),
-                    Icon(Icons.emoji_events_rounded,
+                    AppIcon('Icons.emoji_events_rounded', icon: Icons.emoji_events_rounded,
                         color: Colors.amber, size: 18),
                   ],
                 ),
@@ -197,7 +198,7 @@ class RoomHeaderWidget extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.bar_chart_rounded,
+                      const AppIcon('Icons.bar_chart_rounded', icon: Icons.bar_chart_rounded,
                           color: Colors.greenAccent, size: 14),
                       const SizedBox(width: 4),
                       Text('$onlineCount',

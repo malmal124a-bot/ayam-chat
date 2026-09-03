@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/wallet_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
@@ -18,7 +19,7 @@ class WalletScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.royalGold),
+          icon: AppIcon('Icons.arrow_back_ios', icon: Icons.arrow_back_ios, color: AppTheme.royalGold),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -49,7 +50,7 @@ class WalletScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.diamond, color: Colors.blueAccent, size: 20),
+                        const AppIcon('Icons.diamond', icon: Icons.diamond, color: Colors.blueAccent, size: 20),
                         const SizedBox(width: 8),
                         Text('diamonds'.tr(), style: const TextStyle(color: Colors.white70, fontSize: 14)),
                       ],
@@ -68,7 +69,7 @@ class WalletScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.account_balance_wallet_rounded, color: AppTheme.royalGold, size: 20),
+                        AppIcon('Icons.account_balance_wallet_rounded', icon: Icons.account_balance_wallet_rounded, color: AppTheme.royalGold, size: 20),
                         const SizedBox(width: 8),
                         Text('balance'.tr(), style: const TextStyle(color: Colors.white70, fontSize: 14)),
                       ],
@@ -89,7 +90,7 @@ class WalletScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               children: [
-                Icon(Icons.history, color: AppTheme.royalGold, size: 20),
+                AppIcon('Icons.history', icon: Icons.history, color: AppTheme.royalGold, size: 20),
                 const SizedBox(width: 8),
                 Text('transaction_history'.tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               ],
@@ -103,7 +104,7 @@ class WalletScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.receipt_long_outlined, size: 64, color: Colors.white.withValues(alpha: 0.15)),
+                        AppIcon('Icons.receipt_long_outlined', icon: Icons.receipt_long_outlined, size: 64, color: Colors.white.withValues(alpha: 0.15)),
                         const SizedBox(height: 16),
                         Text('no_transactions'.tr(), style: const TextStyle(color: Colors.white24)),
                       ],

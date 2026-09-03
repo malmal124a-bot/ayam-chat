@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../widgets/app_icon.dart';
 import '../controllers/vip_controller.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/wallet_controller.dart';
@@ -165,7 +166,7 @@ class _VipScreenState extends State<VipScreen> with SingleTickerProviderStateMix
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface),
+            icon: AppIcon('Icons.arrow_back_ios_new', icon: Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface),
             onPressed: () => Navigator.pop(context),
             style: IconButton.styleFrom(
               backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.1),
@@ -315,8 +316,9 @@ class _VipScreenState extends State<VipScreen> with SingleTickerProviderStateMix
             ),
           ),
           child: Center(
-            child: Icon(
-              Icons.stars_rounded,
+            child: AppIcon(
+              'Icons.stars_rounded',
+              icon: Icons.stars_rounded,
               size: 80,
               color: theme.colorScheme.secondary,
             ),
@@ -355,7 +357,7 @@ class _VipScreenState extends State<VipScreen> with SingleTickerProviderStateMix
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.verified_rounded, color: theme.colorScheme.secondary, size: 16),
+              AppIcon('Icons.verified_rounded', icon: Icons.verified_rounded, color: theme.colorScheme.secondary, size: 16),
               const SizedBox(width: 8),
               Text(
                 'PREMIUM MEMBER',
@@ -493,7 +495,7 @@ class _VipScreenState extends State<VipScreen> with SingleTickerProviderStateMix
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.diamond, color: theme.colorScheme.secondary, size: 16),
+                      AppIcon('Icons.diamond', icon: Icons.diamond, color: theme.colorScheme.secondary, size: 16),
                       const SizedBox(width: 6),
                       Text('$cost', style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 16)),
                     ],

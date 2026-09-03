@@ -13,6 +13,7 @@ import 'profile_details_screen.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/daily_checkin_controller.dart';
 import '../services/supabase_service.dart';
+import '../widgets/app_icon.dart';
 
 class RoomsHomeScreen extends StatefulWidget {
   const RoomsHomeScreen({super.key});
@@ -470,8 +471,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
             child: Image.asset(
               'assets/images/icon_user_task_new.png',
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.today,
+              errorBuilder: (context, error, stackTrace) => const AppIcon('Icons.today', icon: Icons.today,
                 color: Colors.black,
                 size: 32,
               ),
@@ -526,7 +526,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.favorite, color: Color(0xFFFFD700), size: 35),
+                  AppIcon('Icons.favorite', icon: Icons.favorite, color: Color(0xFFFFD700), size: 35),
                   SizedBox(height: 8),
                   Text(
                     "القلب الملكي",
@@ -568,7 +568,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
                   'assets/images/+½+¦+ê+¬ +¦+ê+à.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Icon(Icons.family_restroom, color: Color(0xFFFFD700), size: 40),
+                    child: AppIcon('Icons.family_restroom', icon: Icons.family_restroom, color: Color(0xFFFFD700), size: 40),
                   ),
                 ),
               ),
@@ -600,7 +600,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
                   'assets/images/ranking_entry.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Icon(Icons.emoji_events, color: Color(0xFFFFD700), size: 40),
+                    child: AppIcon('Icons.emoji_events', icon: Icons.emoji_events, color: Color(0xFFFFD700), size: 40),
                   ),
                 ),
               ),
@@ -644,7 +644,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
             padding: const EdgeInsets.all(32),
             child: Column(
               children: [
-                Icon(Icons.bookmark_border, color: const Color(0xFFFFD700).withOpacity(0.5), size: 64),
+                AppIcon('Icons.bookmark_border', icon: Icons.bookmark_border, color: const Color(0xFFFFD700).withOpacity(0.5), size: 64),
                 const SizedBox(height: 16),
                 const Text(
                   'لا توجد غرف خاصة بك',
@@ -741,8 +741,9 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
                                   : null,
                               ),
                               child: roomCover.isEmpty ? const Center(
-                                child: Icon(
-                                  Icons.castle_rounded,
+                                child: AppIcon(
+                                  'Icons.castle_rounded',
+                                  icon: Icons.castle_rounded,
                                   color: Color(0xFFFFD700),
                                   size: 32,
                                 ),
@@ -868,7 +869,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
                     ),
                   ),
                 ),
-                const Icon(Icons.arrow_back_ios, color: Color(0xFFFFD700)),
+                const AppIcon('Icons.arrow_back_ios', icon: Icons.arrow_back_ios, color: Color(0xFFFFD700)),
                 const SizedBox(width: 16),
               ],
             ),
@@ -925,7 +926,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
                   shape: BoxShape.circle,
                   gradient: LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFB8860B)]),
                 ),
-                child: const Icon(Icons.local_offer_rounded, color: Colors.black, size: 50),
+                child: const AppIcon('Icons.local_offer_rounded', icon: Icons.local_offer_rounded, color: Colors.black, size: 50),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -988,7 +989,7 @@ class _RoomsHomeScreenState extends State<RoomsHomeScreen> {
                   shape: BoxShape.circle,
                   gradient: LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFB8860B)]),
                 ),
-                child: const Icon(Icons.event_rounded, color: Colors.black, size: 50),
+                child: const AppIcon('Icons.event_rounded', icon: Icons.event_rounded, color: Colors.black, size: 50),
               ),
               const SizedBox(height: 20),
               const Text(

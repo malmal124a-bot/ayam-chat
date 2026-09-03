@@ -2,6 +2,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -28,7 +29,7 @@ class AboutScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppTheme.royalGold, width: 2),
               ),
-              child: Icon(Icons.chat_bubble_rounded, size: 60, color: AppTheme.royalGold),
+              child: AppIcon('Icons.chat_bubble_rounded', icon: Icons.chat_bubble_rounded, size: 60, color: AppTheme.royalGold),
             ),
             const SizedBox(height: 24),
             Text('app_name'.tr(), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
@@ -103,7 +104,7 @@ class AboutScreen extends StatelessWidget {
       child: ListTile(
         title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-        trailing: Icon(Icons.arrow_forward_ios, color: AppTheme.royalGold, size: 16),
+        trailing: AppIcon('Icons.arrow_forward_ios', icon: Icons.arrow_forward_ios, color: AppTheme.royalGold, size: 16),
         onTap: onTap,
       ),
     );

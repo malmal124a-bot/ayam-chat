@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import '../controllers/agency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class JoinAgencyScreen extends StatefulWidget {
   const JoinAgencyScreen({super.key});
@@ -123,7 +124,7 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
           CircleAvatar(
             radius: 40,
             backgroundColor: AppTheme.royalGold,
-            child: Icon(Icons.business_rounded, size: 40, color: Colors.black),
+            child: AppIcon('Icons.business_rounded', icon: Icons.business_rounded, size: 40, color: Colors.black),
           ),
           const SizedBox(height: 15),
           Text(

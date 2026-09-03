@@ -5,6 +5,7 @@ import 'package:svgaplayer_flutter/svgaplayer_flutter.dart';
 import 'package:video_player/video_player.dart';
 import '../utils/image_utils.dart';
 import '../services/svga_asset_service.dart';
+import 'app_icon.dart';
 
 class AlphaGiftPlayer extends StatefulWidget {
   final String svgaPath;
@@ -131,8 +132,8 @@ class _AlphaGiftPlayerState extends State<AlphaGiftPlayer> with SingleTickerProv
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(
-        child: Icon(
-          Icons.rocket_launch,
+        child: AppIcon(
+          'Icons.rocket_launch', icon: Icons.rocket_launch,
           color: Color(0xFFFFD700),
           size: 60,
         ),
@@ -170,8 +171,8 @@ class _AlphaGiftPlayerState extends State<AlphaGiftPlayer> with SingleTickerProv
     }
 
     return const Center(
-      child: Icon(
-        Icons.rocket_launch,
+      child: AppIcon(
+        'Icons.rocket_launch', icon: Icons.rocket_launch,
         color: Color(0xFFFFD700),
         size: 60,
       ),

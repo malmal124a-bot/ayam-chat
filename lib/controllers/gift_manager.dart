@@ -50,6 +50,10 @@ class GiftManager extends ChangeNotifier {
 
   final List<ActiveGiftInfo> activeGifts = [];
   final List<LuckyGiftWinInfo> luckyGiftWins = [];
+
+  // Tracks live gift overlay entries so they can be removed immediately when
+  // leaving the room (instead of leaving them to persist on other screens).
+  final List<OverlayEntry> _activeOverlayEntries = [];
   bool _isDisposed = false;
 
   UserController get _userController => UserController();
@@ -101,34 +105,27 @@ class GiftManager extends ChangeNotifier {
     safeNotify();
   }
 
-  OverlayEntry createGiftOverlay(String svgaPath, VoidCallback onComplete) {
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (context) => AlphaGiftPlayer(
-        svgaPath: svgaPath,
-        onFinished: () {
-          if (entry.mounted) {
-            entry.remove();
-          }
-          onComplete();
-        },
-      ),
-    );
-    return entry;
-  }
-
   /// Displays a gift animation using an isolated OverlayEntry.
   /// This prevents room UI freezes and ensures buttons remain clickable.
+  /// The entry is tracked so it is removed when the room is left.
   void triggerAnimation(BuildContext context, GiftItem item, {String? senderName, String? recipientName, int comboCount = 1}) {
     if (!item.animated || item.svgaPath == null) return;
 
     // Use the root overlay to ensure it's above everything and non-blocking
     final overlayState = Overlay.of(context, rootOverlay: true);
     
-    final entry = createGiftOverlay(item.svgaPath!, () {
-      // Animation complete
-    });
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => AlphaGiftPlayer(
+        svgaPath: item.svgaPath!,
+        onFinished: () {
+          _activeOverlayEntries.remove(entry);
+          if (entry.mounted) entry.remove();
+        },
+      ),
+    );
 
+    _activeOverlayEntries.add(entry);
     overlayState.insert(entry);
   }
 
@@ -143,7 +140,12 @@ class GiftManager extends ChangeNotifier {
   }
 
   void clearAnimation() {
-    // Animations in OverlayEntry will finish and remove themselves.
+    // Actually remove any live gift overlays so they do not keep showing on
+    // other screens after leaving the room.
+    for (final entry in _activeOverlayEntries) {
+      if (entry.mounted) entry.remove();
+    }
+    _activeOverlayEntries.clear();
     activeGifts.clear();
     safeNotify();
   }

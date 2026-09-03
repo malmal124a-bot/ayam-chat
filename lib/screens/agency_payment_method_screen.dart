@@ -5,6 +5,7 @@ import '../controllers/agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/wallet_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import 'agency_dashboard_screen.dart';
 
 class AgencyPaymentMethodScreen extends StatefulWidget {
@@ -142,7 +143,7 @@ class _AgencyPaymentMethodScreenState extends State<AgencyPaymentMethodScreen> {
             const SizedBox(width: 15),
             Text(method['name'], style: TextStyle(color: isSelected ? Colors.green : Colors.white, fontWeight: FontWeight.bold)),
             const Spacer(),
-            if (isSelected) const Icon(Icons.check_circle, color: Colors.green, size: 20),
+            if (isSelected) const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green, size: 20),
           ],
         ),
       ),

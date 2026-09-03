@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import '../controllers/family_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class FamilyRequestsScreen extends StatelessWidget {
   const FamilyRequestsScreen({super.key});
@@ -43,11 +44,11 @@ class FamilyRequestsScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.check_circle, color: Colors.green),
+                          icon: const AppIcon('Icons.check_circle', icon: Icons.check_circle, color: Colors.green),
                           onPressed: () => family.acceptInvite(invite.id),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.cancel, color: Colors.redAccent),
+                          icon: const AppIcon('Icons.cancel', icon: Icons.cancel, color: Colors.redAccent),
                           onPressed: () => family.rejectInvite(invite.id),
                         ),
                       ],

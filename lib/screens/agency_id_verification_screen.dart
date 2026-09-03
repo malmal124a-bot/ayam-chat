@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controllers/agency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import 'agency_tier_selection_screen.dart';
 
 class AgencyIdVerificationScreen extends StatefulWidget {
@@ -215,7 +216,7 @@ class _AgencyIdVerificationScreenState extends State<AgencyIdVerificationScreen>
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_a_photo_outlined, color: AppTheme.royalGold, size: 30),
+                        AppIcon('Icons.add_a_photo_outlined', icon: Icons.add_a_photo_outlined, color: AppTheme.royalGold, size: 30),
                         SizedBox(height: 8),
                         Text('اضغط للرفع', style: TextStyle(color: Colors.white24, fontSize: 12)),
                       ],

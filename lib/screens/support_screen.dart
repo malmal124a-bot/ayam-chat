@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import '../controllers/support_controller.dart';
 import '../models/chat_message.dart';
+import '../widgets/app_icon.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -71,12 +72,12 @@ class _SupportScreenState extends State<SupportScreen> {
           elevation: 0,
           iconTheme: theme.iconTheme,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new),
+            icon: const AppIcon('Icons.arrow_back_ios_new', icon: Icons.arrow_back_ios_new),
             onPressed: () => Navigator.pop(context),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.volume_off_outlined),
+              icon: const AppIcon('Icons.volume_off_outlined', icon: Icons.volume_off_outlined),
               onPressed: () => context.read<SupportController>().stopSpeaking(),
               tooltip: "إيقاف الصوت",
             ),
@@ -139,7 +140,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.smart_toy_outlined, size: 16, color: theme.colorScheme.secondary),
+                    AppIcon('Icons.smart_toy_outlined', icon: Icons.smart_toy_outlined, size: 16, color: theme.colorScheme.secondary),
                     const SizedBox(width: 6),
                     Text("AI Assistant", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary)),
                   ],
@@ -173,15 +174,15 @@ class _SupportScreenState extends State<SupportScreen> {
           borderRadius: BorderRadius.circular(12),
           child: msg.mediaPath != null 
             ? (kIsWeb || msg.mediaPath!.startsWith('http') || msg.mediaPath!.startsWith('blob:')
-                ? Image.network(msg.mediaPath!, errorBuilder: (c, e, s) => const Icon(Icons.broken_image))
-                : Image.file(File(msg.mediaPath!), errorBuilder: (c, e, s) => const Icon(Icons.broken_image)))
-            : Icon(Icons.broken_image, color: theme.colorScheme.onSurface),
+                ? Image.network(msg.mediaPath!, errorBuilder: (c, e, s) => const AppIcon('Icons.broken_image', icon: Icons.broken_image))
+                : Image.file(File(msg.mediaPath!), errorBuilder: (c, e, s) => const AppIcon('Icons.broken_image', icon: Icons.broken_image)))
+            : AppIcon('Icons.broken_image', icon: Icons.broken_image, color: theme.colorScheme.onSurface),
         );
       case MessageType.video:
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.play_circle_outline, color: theme.colorScheme.secondary),
+            AppIcon('Icons.play_circle_outline', icon: Icons.play_circle_outline, color: theme.colorScheme.secondary),
             const SizedBox(width: 8),
             Text("فيديو مرفق", style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
           ],
@@ -190,7 +191,7 @@ class _SupportScreenState extends State<SupportScreen> {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.audiotrack, color: theme.colorScheme.secondary),
+            AppIcon('Icons.audiotrack', icon: Icons.audiotrack, color: theme.colorScheme.secondary),
             const SizedBox(width: 8),
             Text("تسجيل صوتي", style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
           ],
@@ -257,7 +258,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 radius: 24,
                 backgroundColor: theme.primaryColor,
                 child: IconButton(
-                  icon: Icon(Icons.send, color: theme.colorScheme.secondary, size: 22),
+                  icon: AppIcon('Icons.send', icon: Icons.send, color: theme.colorScheme.secondary, size: 22),
                   onPressed: _sendMessage,
                 ),
               ),

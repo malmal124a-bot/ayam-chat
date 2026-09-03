@@ -7,6 +7,7 @@ import '../controllers/agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../services/agency_api_service.dart';
 import '../models/transaction_model.dart' as tx_model;
+import '../widgets/app_icon.dart';
 
 class AgencyScreen extends StatefulWidget {
   const AgencyScreen({super.key});
@@ -77,7 +78,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
                   'agency_logs'.tr(),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                 ),
-                Icon(Icons.history, color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
+                AppIcon('Icons.history', icon: Icons.history, color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
               ],
             ),
             const SizedBox(height: 15),
@@ -105,7 +106,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.stars, color: Colors.amber),
+              const AppIcon('Icons.stars', icon: Icons.stars, color: Colors.amber),
               const SizedBox(width: 10),
               Text('تارجت الهوست', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
               const Spacer(),
@@ -126,7 +127,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: (_isProcessing || !canWithdraw) ? null : () => _handleWithdrawTarget(agency),
-                  icon: const Icon(Icons.lock_open_rounded, size: 18),
+                  icon: const AppIcon('Icons.lock_open_rounded', icon: Icons.lock_open_rounded, size: 18),
                   label: const Text('فك التارجت'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -140,7 +141,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: (_isProcessing || progress <= 0) ? null : () => _handleSellTarget(agency),
-                  icon: const Icon(Icons.sell_rounded, size: 18),
+                  icon: const AppIcon('Icons.sell_rounded', icon: Icons.sell_rounded, size: 18),
                   label: const Text('بيع للوكيل'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.secondary,
@@ -245,7 +246,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('available_liquidity'.tr(), style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14)),
-              const Icon(Icons.account_balance_wallet, color: Colors.white, size: 28),
+              const AppIcon('Icons.account_balance_wallet', icon: Icons.account_balance_wallet, color: Colors.white, size: 28),
             ],
           ),
           const SizedBox(height: 10),
@@ -279,7 +280,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
             decoration: InputDecoration(
               labelText: 'target_user_id'.tr(),
               hintText: 'Enter ID...',
-              prefixIcon: const Icon(Icons.person_pin_rounded),
+              prefixIcon: const AppIcon('Icons.person_pin_rounded', icon: Icons.person_pin_rounded),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
             ),
           ),
@@ -291,7 +292,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
             decoration: InputDecoration(
               labelText: 'diamonds_amount'.tr(),
               hintText: 'e.g. 12000',
-              prefixIcon: const Icon(Icons.diamond_rounded),
+              prefixIcon: const AppIcon('Icons.diamond_rounded', icon: Icons.diamond_rounded),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
             ),
           ),
@@ -392,7 +393,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
         ),
         child: Column(
           children: [
-            Icon(Icons.notes_rounded, size: 40, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+            AppIcon('Icons.notes_rounded', icon: Icons.notes_rounded, size: 40, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
             const SizedBox(height: 10),
             Text('no_transactions_yet'.tr(), style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
           ],
@@ -422,7 +423,7 @@ class _AgencyScreenState extends State<AgencyScreen> {
                   color: theme.colorScheme.secondary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.outbound_rounded, color: theme.colorScheme.secondary, size: 20),
+                child: AppIcon('Icons.outbound_rounded', icon: Icons.outbound_rounded, color: theme.colorScheme.secondary, size: 20),
               ),
               const SizedBox(width: 15),
               Expanded(

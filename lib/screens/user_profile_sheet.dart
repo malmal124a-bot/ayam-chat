@@ -4,6 +4,7 @@ import '../services/supabase_service.dart';
 import '../controllers/user_controller.dart';
 import 'dm_chat_screen.dart';
 import 'edit_profile_screen.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/gift_sheet_widget.dart';
 import '../controllers/gift_controller.dart';
 
@@ -288,7 +289,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
                     ? NetworkImage(_avatarUrl!)
                     : null,
                 child: (_avatarUrl == null || _avatarUrl!.isEmpty)
-                    ? const Icon(Icons.person, size: 45, color: textSecondary)
+                    ? const AppIcon('Icons.person', icon: Icons.person, size: 45, color: textSecondary)
                     : null,
               ),
               if (_equippedFrameUrl != null && _equippedFrameUrl!.isNotEmpty)
@@ -377,7 +378,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
                         const SnackBar(content: Text('تم نسخ المعرف')),
                       );
                     },
-                    child: const Icon(Icons.copy, color: goldenColor, size: 14),
+                    child: const AppIcon('Icons.copy', icon: Icons.copy, color: goldenColor, size: 14),
                   ),
                 ],
               ),
@@ -400,7 +401,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.edit, color: goldenColor, size: 16),
+                    AppIcon('Icons.edit', icon: Icons.edit, color: goldenColor, size: 16),
                     SizedBox(width: 6),
                     Text('تعديل الملف الشخصي', style: TextStyle(color: goldenColor, fontSize: 13, fontWeight: FontWeight.bold)),
                   ],
@@ -476,7 +477,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
           Container(
             decoration: const BoxDecoration(color: secondaryBackground, shape: BoxShape.circle),
             child: IconButton(
-              icon: const Icon(Icons.message, color: goldenColor),
+              icon: const AppIcon('Icons.message', icon: Icons.message, color: goldenColor),
               onPressed: _openPrivateChat,
             ),
           ),
@@ -484,7 +485,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
           Container(
             decoration: const BoxDecoration(color: secondaryBackground, shape: BoxShape.circle),
             child: IconButton(
-              icon: const Icon(Icons.card_giftcard, color: goldenColor),
+              icon: const AppIcon('Icons.card_giftcard', icon: Icons.card_giftcard, color: goldenColor),
               onPressed: () {
                 Navigator.pop(context);
                 showComprehensiveGiftSheet(context, GiftController(), (msg, target, combo) {
@@ -603,7 +604,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
                 color: goldenColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.business, color: goldenColor, size: 24),
+              child: const AppIcon('Icons.business', icon: Icons.business, color: goldenColor, size: 24),
             ),
           const SizedBox(width: 12),
           Expanded(
@@ -627,7 +628,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
               ],
             ),
           ),
-          Icon(Icons.chevron_left, color: textSecondary),
+          AppIcon('Icons.chevron_left', icon: Icons.chevron_left, color: textSecondary),
         ],
       ),
     );
@@ -647,7 +648,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet, color: goldenColor, size: 20),
+              const AppIcon('Icons.account_balance_wallet', icon: Icons.account_balance_wallet, color: goldenColor, size: 20),
               const SizedBox(width: 8),
               const Text('المحفظة', style: TextStyle(color: goldenColor, fontWeight: FontWeight.bold)),
             ],
@@ -730,7 +731,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.network(url, fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.face, color: goldenColor, size: 30),
+          errorBuilder: (_, __, ___) => const AppIcon('Icons.face', icon: Icons.face, color: goldenColor, size: 30),
         ),
       ),
     );
@@ -763,7 +764,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
         children: [
           Row(
             children: [
-              const Icon(Icons.card_giftcard, color: goldenColor, size: 20),
+              const AppIcon('Icons.card_giftcard', icon: Icons.card_giftcard, color: goldenColor, size: 20),
               const SizedBox(width: 8),
               Text(
                 'الهدايا المستلمة ($_receivedGiftsCount)',
@@ -810,8 +811,8 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
                             Center(
                               child: imageUrl != null && imageUrl.isNotEmpty
                                   ? Image.network(imageUrl, width: 32, height: 32,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, color: Colors.white70, size: 24))
-                                  : const Icon(Icons.card_giftcard, color: Colors.white70, size: 24),
+                                      errorBuilder: (_, __, ___) => const AppIcon('Icons.card_giftcard', icon: Icons.card_giftcard, color: Colors.white70, size: 24))
+                                  : const AppIcon('Icons.card_giftcard', icon: Icons.card_giftcard, color: Colors.white70, size: 24),
                             ),
                             Positioned(
                               top: 2,
@@ -854,7 +855,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> with SingleTickerPr
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.camera_alt_outlined, size: 64, color: textSecondary),
+          AppIcon('Icons.camera_alt_outlined', icon: Icons.camera_alt_outlined, size: 64, color: textSecondary),
           SizedBox(height: 16),
           Text('لا توجد لحظات حتى الآن', style: TextStyle(color: textSecondary, fontSize: 16)),
         ],

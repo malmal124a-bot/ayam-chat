@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 import '../controllers/family_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import 'family_requests_screen.dart';
 
 class FamilyManagementScreen extends StatefulWidget {
@@ -95,7 +96,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
               ),
               child: TextButton.icon(
                 onPressed: () => _confirmDelete(context, family),
-                icon: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+                icon: const AppIcon('Icons.delete_forever_rounded', icon: Icons.delete_forever_rounded, color: Colors.redAccent),
                 label: const Text('حل العائلة نهائياً', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
               ),
             ),
@@ -160,7 +161,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 14),
+            const AppIcon('Icons.arrow_forward_ios_rounded', icon: Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 14),
           ],
         ),
       ),

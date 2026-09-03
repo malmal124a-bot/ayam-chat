@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/tasks_controller.dart';
+import '../widgets/app_icon.dart';
 
 class TasksScreen extends StatelessWidget {
   const TasksScreen({super.key});
@@ -30,7 +31,7 @@ class TasksScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.assignment_late_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+                  AppIcon('Icons.assignment_late_outlined', icon: Icons.assignment_late_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
                   const SizedBox(height: 16),
                   Text(
                     'no_tasks'.tr(),
@@ -97,7 +98,7 @@ class TasksScreen extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.diamond_rounded, color: theme.colorScheme.secondary, size: 16),
+                              AppIcon('Icons.diamond_rounded', icon: Icons.diamond_rounded, color: theme.colorScheme.secondary, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 '${task.rewardAmount}',

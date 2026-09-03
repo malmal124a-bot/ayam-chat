@@ -125,6 +125,7 @@ class RoomUiController extends ChangeNotifier {
 
   final List<RoomMessage> _pendingGiftAnimations = [];
   List<RoomMessage> get pendingGiftAnimations => List.unmodifiable(_pendingGiftAnimations);
+  final Set<String> _seenGiftIds = {};
   void consumePendingGiftAnimation() {
     if (_pendingGiftAnimations.isNotEmpty) {
       _pendingGiftAnimations.removeAt(0);
@@ -249,8 +250,9 @@ class RoomUiController extends ChangeNotifier {
 
   void _listenToMessages() {
     _messageSubscription?.cancel();
-    final knownIds = <String>{};
+    final baselineIds = <String>{};
     _messagesInitialized = false;
+    _seenGiftIds.clear();
     _messageSubscription = _client
         .from('messages')
         .stream(primaryKey: ['id'])
@@ -258,9 +260,23 @@ class RoomUiController extends ChangeNotifier {
         .order('created_at', ascending: false)
         .limit(50)
         .listen((rows) {
+      final currentIds = rows.map((r) => r['id'].toString()).toSet();
+
+      // On the first snapshot, remember the messages that already existed
+      // BEFORE entering. They are excluded from the chat so the user NEVER
+      // sees old messages when (re)entering a room — only messages sent AFTER
+      // entering are shown.
+      if (!_messagesInitialized) {
+        baselineIds.addAll(currentIds);
+        _messagesInitialized = true;
+      }
+
+      // Rebuild the visible chat from only post-entry (new) messages.
+      final newRows =
+          rows.where((r) => !baselineIds.contains(r['id'].toString())).toList();
       _messages.clear();
-      for (var row in rows) {
-        final msg = RoomMessage(
+      for (final row in newRows.reversed) {
+        _messages.add(RoomMessage(
           id: row['id'].toString(),
           senderName: (row['sender_name'] ?? '').toString(),
           text: (row['text'] ?? '').toString(),
@@ -268,16 +284,29 @@ class RoomUiController extends ChangeNotifier {
           senderLevel: (row['sender_level'] as num?)?.toInt() ?? 1,
           imageUrl: row['image_url'],
           giftName: row['gift_name']?.toString(),
-        );
-        _messages.add(msg);
-        if (!_messagesInitialized) {
-          knownIds.add(msg.id);
-        } else if (msg.type == RoomMessageType.gift && !knownIds.contains(msg.id) && msg.senderName != UserController().name) {
-          _pendingGiftAnimations.add(msg);
+        ));
+      }
+
+      // Queue animation for newly-received gift messages (from others only).
+      for (final row in newRows) {
+        if ((row['type'] ?? '') == 'gift') {
+          final id = row['id'].toString();
+          if (_seenGiftIds.contains(id)) continue;
+          _seenGiftIds.add(id);
+          final senderName = (row['sender_name'] ?? '').toString();
+          if (senderName != UserController().name) {
+            _pendingGiftAnimations.add(RoomMessage(
+              id: id,
+              senderName: senderName,
+              text: (row['text'] ?? '').toString(),
+              type: RoomMessageType.gift,
+              senderLevel: (row['sender_level'] as num?)?.toInt() ?? 1,
+              giftName: row['gift_name']?.toString(),
+            ));
+          }
         }
       }
-      _messagesInitialized = true;
-      knownIds.addAll(rows.map((r) => r['id'].toString()));
+
       safeNotify();
     });
   }

@@ -10,6 +10,7 @@ import '../controllers/wallet_controller.dart';
 import '../controllers/leaderboard_controller.dart';
 import '../models/profile_item.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/broadcast_ticker.dart';
 import '../widgets/friend_requests_notification.dart';
 import 'edit_profile_screen.dart';
@@ -64,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Image.asset('assets/images/icon_contact_us.png', width: 24, height: 24, fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(Icons.edit_outlined, color: theme.colorScheme.onSurface)),
+              errorBuilder: (_, __, ___) => AppIcon('Icons.edit_outlined', icon: Icons.edit_outlined, color: theme.colorScheme.onSurface)),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
           ),
         ],
@@ -337,7 +338,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+            AppIcon('Icons.chevron_right_rounded', icon: Icons.chevron_right_rounded, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -374,7 +375,7 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.workspace_premium, color: Colors.white, size: 12),
+          const AppIcon('Icons.workspace_premium', icon: Icons.workspace_premium, color: Colors.white, size: 12),
           const SizedBox(width: 4),
           Text('SVIP $level', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
         ],
@@ -401,7 +402,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildAvatar(UserController user) {
     if (user.profilePic.startsWith('http')) {
-      return CachedNetworkImage(imageUrl: user.profilePic, fit: BoxFit.cover, errorWidget: (context, url, error) => const Icon(Icons.person, size: 40));
+      return CachedNetworkImage(imageUrl: user.profilePic, fit: BoxFit.cover, errorWidget: (context, url, error) => const AppIcon('Icons.person', icon: Icons.person, size: 40));
     }
     return Image.asset(user.profilePic.isNotEmpty ? user.profilePic : 'assets/Asad/bg_vip_content.png', fit: BoxFit.cover);
   }
@@ -427,25 +428,25 @@ class ProfileScreen extends StatelessWidget {
         _buildTopHeaderItem(context, 'store'.tr(), SizedBox(
           width: 30, height: 30,
           child: Image.asset('assets/images/Untitled-1_0034_icon_store.png', fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(Icons.storefront_rounded, color: Colors.white70, size: 30),
+            errorBuilder: (_, __, ___) => const AppIcon('Icons.storefront_rounded', icon: Icons.storefront_rounded, color: Colors.white70, size: 30),
           ),
         ), const StoreScreen()),
         _buildTopHeaderItem(context, 'VIP ${user.vipLevel}', SizedBox(
           width: 30, height: 30,
           child: Image.asset('assets/images/Untitled-1_0032_live_icon_contribute_vip_enjoy_tag.png', fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(Icons.star_rounded, color: Colors.white70, size: 30),
+            errorBuilder: (_, __, ___) => const AppIcon('Icons.star_rounded', icon: Icons.star_rounded, color: Colors.white70, size: 30),
           ),
         ), const VipScreen()),
         _buildTopHeaderItem(context, 'SVIP', SizedBox(
           width: 38, height: 38,
           child: Image.asset('assets/images/SVIP.jpeg', fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(Icons.workspace_premium, color: Colors.white70, size: 38),
+            errorBuilder: (_, __, ___) => const AppIcon('Icons.workspace_premium', icon: Icons.workspace_premium, color: Colors.white70, size: 38),
           ),
         ), const SvipPortalScreen()),
         _buildTopHeaderItem(context, 'وكالة المضيفين', SizedBox(
           width: 30, height: 30,
           child: Image.asset('assets/images/icon_host.png', fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(Icons.supervisor_account_rounded, color: Colors.white70, size: 30),
+            errorBuilder: (_, __, ___) => const AppIcon('Icons.supervisor_account_rounded', icon: Icons.supervisor_account_rounded, color: Colors.white70, size: 30),
           ),
         ), const HostAgencyScreen()),
       ],

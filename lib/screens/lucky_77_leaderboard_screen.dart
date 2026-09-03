@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_icon.dart';
 
 class Lucky77LeaderboardScreen extends StatelessWidget {
   const Lucky77LeaderboardScreen({super.key});
@@ -11,7 +12,7 @@ class Lucky77LeaderboardScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: const AppIcon('Icons.arrow_back_ios_new', icon: Icons.arrow_back_ios_new, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(

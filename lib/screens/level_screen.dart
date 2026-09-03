@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/user_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class LevelScreen extends StatelessWidget {
   const LevelScreen({super.key});
@@ -28,7 +29,7 @@ class LevelScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.royalGold),
+          icon: AppIcon('Icons.arrow_back_ios', icon: Icons.arrow_back_ios, color: AppTheme.royalGold),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -141,7 +142,7 @@ class LevelScreen extends StatelessWidget {
             Positioned(
               right: -20,
               top: -20,
-              child: Icon(Icons.workspace_premium, size: 120, color: AppTheme.royalGold.withValues(alpha: 0.05)),
+              child: AppIcon('Icons.workspace_premium', icon: Icons.workspace_premium, size: 120, color: AppTheme.royalGold.withValues(alpha: 0.05)),
             ),
           Padding(
             padding: const EdgeInsets.all(24),
@@ -161,7 +162,7 @@ class LevelScreen extends StatelessWidget {
                         iconPath,
                         width: 45,
                         height: 45,
-                        errorBuilder: (c, e, s) => Icon(Icons.stars, color: baseColor, size: 45),
+                        errorBuilder: (c, e, s) => AppIcon('Icons.stars', icon: Icons.stars, color: baseColor, size: 45),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -260,7 +261,7 @@ class LevelScreen extends StatelessWidget {
                      child: Row(
                        mainAxisSize: MainAxisSize.min,
                        children: [
-                         Icon(Icons.auto_awesome, color: AppTheme.royalGold, size: 14),
+                          AppIcon('Icons.auto_awesome', icon: Icons.auto_awesome, color: AppTheme.royalGold, size: 14),
                          SizedBox(width: 6),
                          Text(
                            'مميزات النخبة مفعلة',

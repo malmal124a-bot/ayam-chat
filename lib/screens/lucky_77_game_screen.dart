@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/wallet_controller.dart';
+import '../widgets/app_icon.dart';
 import 'lucky_77_leaderboard_screen.dart';
 
 class Lucky77GameScreen extends StatefulWidget {
@@ -255,7 +256,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.diamond, color: Colors.blueAccent, size: 28),
+                      const AppIcon('Icons.diamond', icon: Icons.diamond, color: Colors.blueAccent, size: 28),
                       const SizedBox(width: 8),
                       Text(
                         "$winAmount",
@@ -555,7 +556,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
                 child: CircleAvatar(
                   radius: 14,
                   backgroundColor: Colors.purple.shade800,
-                  child: const Icon(Icons.arrow_back, color: Colors.white, size: 16),
+                  child: const AppIcon('Icons.arrow_back', icon: Icons.arrow_back, color: Colors.white, size: 16),
                 ),
               ),
               const SizedBox(width: 8),
@@ -572,7 +573,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
           // Center: Online users count
           Row(
             children: [
-              const Icon(Icons.wifi, color: Colors.greenAccent, size: 14),
+              const AppIcon('Icons.wifi', icon: Icons.wifi, color: Colors.greenAccent, size: 14),
               const SizedBox(width: 4),
               const Text(
                 "1,245",
@@ -588,7 +589,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
                 child: CircleAvatar(
                   radius: 14,
                   backgroundColor: Colors.purple.shade800,
-                  child: const Icon(Icons.people_alt, color: Colors.white, size: 14),
+                  child: const AppIcon('Icons.people_alt', icon: Icons.people_alt, color: Colors.white, size: 14),
                 ),
               ),
               const SizedBox(width: 6),
@@ -606,7 +607,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
                 child: CircleAvatar(
                   radius: 14,
                   backgroundColor: Colors.purple.shade800,
-                  child: const Icon(Icons.assignment, color: Colors.white, size: 14),
+                  child: const AppIcon('Icons.assignment', icon: Icons.assignment, color: Colors.white, size: 14),
                 ),
               ),
             ],
@@ -829,7 +830,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1),
                     ),
-                    child: const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 20),
+                    child: const AppIcon('Icons.emoji_events_rounded', icon: Icons.emoji_events_rounded, color: Colors.amber, size: 20),
                   ),
                 ),
               ],
@@ -873,7 +874,7 @@ class _Lucky77GameScreenState extends State<Lucky77GameScreen> with SingleTicker
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.diamond, size: 10, color: Colors.blueAccent),
+                    const AppIcon('Icons.diamond', icon: Icons.diamond, size: 10, color: Colors.blueAccent),
                     const SizedBox(width: 2),
                     Text(
                       "${WalletController().diamonds}",

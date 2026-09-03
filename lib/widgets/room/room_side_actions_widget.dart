@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_icon.dart';
 
 class RoomSideActionsWidget extends StatelessWidget {
   final VoidCallback onRocketTap;
@@ -38,8 +39,8 @@ class RoomSideActionsWidget extends StatelessWidget {
                 width: 42,
                 height: 42,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.sports_esports_rounded,
+                errorBuilder: (context, error, stackTrace) => const AppIcon(
+                  'Icons.sports_esports_rounded', icon: Icons.sports_esports_rounded,
                   color: Colors.white,
                   size: 25,
                 ),

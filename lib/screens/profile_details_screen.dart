@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../widgets/app_icon.dart';
 import '../controllers/user_controller.dart';
 import '../controllers/gift_controller.dart';
 import '../services/supabase_service.dart';
@@ -195,7 +196,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
             color: _photoUrl.isEmpty ? Colors.grey : null,
           ),
           child: _photoUrl.isEmpty
-              ? const Icon(Icons.person, size: 50, color: Colors.white)
+              ? const AppIcon('Icons.person', icon: Icons.person, size: 50, color: Colors.white)
               : null,
         ),
         if (_equippedFrameUrl != null && _equippedFrameUrl!.isNotEmpty)

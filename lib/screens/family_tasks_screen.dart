@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class FamilyTasksScreen extends StatelessWidget {
   const FamilyTasksScreen({super.key});
@@ -18,7 +19,7 @@ class FamilyTasksScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.task_alt, size: 60, color: Colors.white24),
+            AppIcon('Icons.task_alt', icon: Icons.task_alt, size: 60, color: Colors.white24),
             SizedBox(height: 16),
             Text('المهام قيد التطوير', style: TextStyle(color: Colors.white38, fontSize: 16)),
           ],

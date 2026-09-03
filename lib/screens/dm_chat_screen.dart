@@ -2,6 +2,7 @@
 import 'package:flutter/scheduler.dart';
 import '../controllers/dm_controller.dart';
 import '../controllers/user_controller.dart';
+import '../widgets/app_icon.dart';
 
 class DmChatScreen extends StatefulWidget {
   final String otherUserId;
@@ -72,7 +73,7 @@ class _DmChatScreenState extends State<DmChatScreen> {
                   ? NetworkImage(widget.otherPic!)
                   : null,
               child: widget.otherPic == null || !widget.otherPic!.startsWith('http')
-                  ? const Icon(Icons.person, size: 20, color: Colors.white54)
+                  ? const AppIcon('Icons.person', icon: Icons.person, size: 20, color: Colors.white54)
                   : null,
             ),
             const SizedBox(width: 10),
@@ -168,7 +169,7 @@ class _DmChatScreenState extends State<DmChatScreen> {
                 IconButton(
                   onPressed: _send,
                   style: IconButton.styleFrom(backgroundColor: const Color(0xFFE0A94E)),
-                  icon: const Icon(Icons.send, color: Colors.black87),
+                  icon: const AppIcon('Icons.send', icon: Icons.send, color: Colors.black87),
                 ),
               ],
             ),

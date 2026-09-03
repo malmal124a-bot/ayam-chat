@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class FamilyStoreScreen extends StatelessWidget {
   const FamilyStoreScreen({super.key});
@@ -18,7 +19,7 @@ class FamilyStoreScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.store, size: 60, color: Colors.white24),
+            AppIcon('Icons.store', icon: Icons.store, size: 60, color: Colors.white24),
             SizedBox(height: 16),
             Text('المتجر قيد التطوير', style: TextStyle(color: Colors.white38, fontSize: 16)),
           ],

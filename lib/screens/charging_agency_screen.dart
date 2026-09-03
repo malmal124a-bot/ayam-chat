@@ -5,6 +5,7 @@ import '../controllers/shipping_agency_controller.dart';
 import '../controllers/user_controller.dart';
 import '../models/agency_model.dart';
 import 'package:intl/intl.dart';
+import '../widgets/app_icon.dart';
 import 'agency_id_verification_screen.dart';
 import 'agency_dashboard_screen.dart';
 
@@ -62,7 +63,7 @@ class _ChargingAgencyScreenState extends State<ChargingAgencyScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.darkBrown),
+          icon: AppIcon('Icons.arrow_back_ios_new', icon: Icons.arrow_back_ios_new, color: AppTheme.darkBrown),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -169,7 +170,7 @@ class _ChargingAgencyScreenState extends State<ChargingAgencyScreen> {
                   color: Colors.white.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.account_balance_wallet_rounded, color: AppTheme.royalGold, size: 36),
+                child: AppIcon('Icons.account_balance_wallet_rounded', icon: Icons.account_balance_wallet_rounded, color: AppTheme.royalGold, size: 36),
               ),
             ],
           ),
@@ -303,7 +304,7 @@ class _ChargingAgencyScreenState extends State<ChargingAgencyScreen> {
                   color: AppTheme.warmSandBackground,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.person_rounded, color: AppTheme.darkBrown, size: 24),
+                child: AppIcon('Icons.person_rounded', icon: Icons.person_rounded, color: AppTheme.darkBrown, size: 24),
               ),
               const SizedBox(width: 18),
               Expanded(

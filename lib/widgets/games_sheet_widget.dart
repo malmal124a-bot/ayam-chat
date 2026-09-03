@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/game_controller.dart';
 import '../screens/lucky_77_game_screen.dart';
+import 'app_icon.dart';
 
 class GamesSheetWidget extends StatelessWidget {
   const GamesSheetWidget({super.key});
@@ -89,7 +90,7 @@ class GamesSheetWidget extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: Colors.white54),
+                icon: const AppIcon('Icons.close', icon: Icons.close, color: Colors.white54),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.white10,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

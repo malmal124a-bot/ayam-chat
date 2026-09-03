@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../controllers/agency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class AdminAgencyRequestsScreen extends StatelessWidget {
   const AdminAgencyRequestsScreen({super.key});
@@ -120,8 +121,8 @@ class AdminAgencyRequestsScreen extends StatelessWidget {
                 context: context,
                 builder: (_) => Dialog(
                   child: (kIsWeb || url.startsWith('http'))
-                      ? Image.network(url, errorBuilder: (c, e, s) => const Icon(Icons.error))
-                      : Image.file(File(url), errorBuilder: (c, e, s) => const Icon(Icons.error)),
+                      ? Image.network(url, errorBuilder: (c, e, s) => const AppIcon('Icons.error', icon: Icons.error))
+                      : Image.file(File(url), errorBuilder: (c, e, s) => const AppIcon('Icons.error', icon: Icons.error)),
                 ),
               );
             }
@@ -134,10 +135,10 @@ class AdminAgencyRequestsScreen extends StatelessWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: url == null
-                ? const Center(child: Icon(Icons.image_not_supported, color: Colors.white24))
+                ? const Center(child: AppIcon('Icons.image_not_supported', icon: Icons.image_not_supported, color: Colors.white24))
                 : (kIsWeb || url.startsWith('http'))
-                    ? Image.network(url, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.error))
-                    : Image.file(File(url), fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.error)),
+                    ? Image.network(url, fit: BoxFit.cover, errorBuilder: (c, e, s) => const AppIcon('Icons.error', icon: Icons.error))
+                    : Image.file(File(url), fit: BoxFit.cover, errorBuilder: (c, e, s) => const AppIcon('Icons.error', icon: Icons.error)),
           ),
         ),
         const SizedBox(height: 4),
